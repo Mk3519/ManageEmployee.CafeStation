@@ -3,24 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نظام إدارة الموظفين - CafeStation</title>
+    <title>Manage Employee - CafeStation</title>
     <link rel="icon" href="images/logo.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
-        <h1>نظام إدارة الموظفين</h1>
+        <div class="header">
+            <img src="images/logo.png" alt="CafeStation Logo" class="company-logo">
+            <div class="header-text">
+                <h2 class="company-name">CafeStation</h2>
+                <h1>Manage Employee</h1>
+            </div>
+        </div>
         <div class="buttons-container">
-            <button onclick="showAddEmployee()">إضافة موظف</button>
-            <button onclick="showAttendance()">تسجيل حضور الموظفين</button>
-            <button onclick="showEvaluation()">تقييم الموظفين</button>
-            <button onclick="showPenalty()">إضافة جزاء</button>
-            <button onclick="showBestEmployee()">تقرير الموظف الأفضل</button>
+            <button class="action-button" onclick="showAddEmployee()">
+                <i class="fas fa-user-plus"></i>
+                Add an employee
+            </button>
+            <button class="action-button" onclick="showAttendance()">
+                <i class="fas fa-clipboard-check"></i>
+                Record employee attendance
+            </button>
+            <button class="action-button" onclick="showEvaluation()">
+                <i class="fas fa-star"></i>
+                Evaluate employees
+            </button>
+            <button class="action-button" onclick="showPenalty()">
+                <i class="fas fa-exclamation-triangle"></i>
+                Add a penalty
+            </button>
+            <button class="action-button" onclick="showBestEmployee()">
+                <i class="fas fa-trophy"></i>
+                Best employee report
+            </button>
         </div>
 
         <!-- نموذج إضافة موظف -->
         <div id="addEmployeeForm" class="form-container" style="display: none;">
-            <h2>إدارة الموظفين</h2>
+            <h2>Staff management</h2>
             <div class="form-group">
                 <label for="empBranchSelect">اختر الفرع:</label>
                 <select id="empBranchSelect" class="form-control">
