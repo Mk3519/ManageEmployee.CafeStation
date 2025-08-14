@@ -1,5 +1,5 @@
 // Google Apps Script URL
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwpTuBht5v2toPW04dWa5H-CqUttMlebIZhPIrdx1EwyJQIZ4XILbKGED-Gq8XfNIAJtw/exec';
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby0DWYb_2Teexq5qZMm6-vuh-F8IPgtOzWxq8F3tkl5OSKrZ7Mcgr7-dC78BNUUgA74/exec';
 
 // تهيئة النجوم
 function initializeStarRatings() {
@@ -76,82 +76,32 @@ async function saveAttendance() {
         loadingDiv.textContent = 'جاري حفظ بيانات الحضور...';
         employeesList.parentNode.insertBefore(loadingDiv, employeesList.nextSibling);
 
-        // إنشاء نموذج مخفي لإرسال البيانات
-        const form = document.createElement('form');
-        form.setAttribute('method', 'POST');
-        form.setAttribute('target', 'hidden_frame');
-        form.setAttribute('action', GOOGLE_SCRIPT_URL);
-
-        // إضافة حقول النموذج
-        const actionInput = document.createElement('input');
-        actionInput.setAttribute('type', 'hidden');
-        actionInput.setAttribute('name', 'action');
-        actionInput.setAttribute('value', 'recordAttendance');
-        form.appendChild(actionInput);
-
-        const dataInput = document.createElement('input');
-        dataInput.setAttribute('type', 'hidden');
-        dataInput.setAttribute('name', 'data');
-        dataInput.setAttribute('value', JSON.stringify(selectedOptions));
-        form.appendChild(dataInput);
-
-        // إنشاء iframe مخفي
-        let frame = document.getElementById('hidden_frame');
-        if (!frame) {
-            frame = document.createElement('iframe');
-            frame.setAttribute('name', 'hidden_frame');
-            frame.setAttribute('id', 'hidden_frame');
-            frame.style.display = 'none';
-            document.body.appendChild(frame);
-        }
-
-        // معالجة الاستجابة
-        return new Promise((resolve, reject) => {
-            frame.onload = function() {
-                try {
-                    resolve({ success: true });
-                } catch (error) {
-                    reject(new Error('حدث خطأ في معالجة الاستجابة'));
-                }
-            };
-            
-            // إضافة النموذج وإرساله
-                        // إزالة أي رسائل نجاح سابقة
-            const oldMessages = document.querySelectorAll('.success-message, .error-message');
-            oldMessages.forEach(msg => msg.remove());
-
-            // إرسال النموذج
-            document.body.appendChild(form);
-            form.submit();
-            document.body.removeChild(form);
-        })
-        .then(response => {
-            saveBtn.disabled = false;
-            saveBtn.textContent = 'حفظ الحضور';
-            employeesList.style.opacity = '1';
-            loadingDiv.remove();
-
-            if (response.success) {
-                alert('تم حفظ بيانات الحضور بنجاح');
-                loadEmployeesByBranch();
-            } else {
-                throw new Error(response.error || 'حدث خطأ في حفظ البيانات');
-            }
-        })
-        .catch(error => {
-            saveBtn.disabled = false;
-            saveBtn.textContent = 'حفظ الحضور';
-            employeesList.style.opacity = '1';
-            loadingDiv.remove();
-            alert(error.message || 'حدث خطأ في حفظ البيانات');
+        // إرسال البيانات باستخدام fetch
+        const response = await fetch(GOOGLE_SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                action: 'recordAttendance',
+                data: selectedOptions
+            })
         });
+
+        // إزالة أي رسائل سابقة
+        const oldMessages = document.querySelectorAll('.success-message, .error-message');
+        oldMessages.forEach(msg => msg.remove());
+
+        // عرض رسالة نجاح بعد فترة قصيرة
+        setTimeout(() => {
+            alert('تم حفظ بيانات الحضور بنجاح');
+        }, 1000);
 
     } catch (error) {
         alert('حدث خطأ: ' + error.message);
     }
 }
-
-    // عرض رسالة نجاح بعد فترة قصيرة
 
 function loadEmployeesForManagement() {
     const branch = document.getElementById('empBranchSelect').value;
@@ -176,10 +126,7 @@ function loadEmployeesForManagement() {
                             <p class="emp-code">كود الموظف: ${emp.code}</p>
                             <p class="emp-phone">رقم الهاتف: ${emp.phone}</p>
                             <p class="emp-branch">الفرع: ${emp.branch}</p>
-                            <div class="card-actions">
-                                <button class="edit-btn" onclick="showEditEmployee('${emp.code}')">تعديل</button>
-                                <button class="delete-btn" onclick="deleteEmployee('${emp.code}')">حذف</button>
-                            </div>
+
                         </div>
                     `).join('') +
                     '</div>';
@@ -758,46 +705,6 @@ function loadBestEmployee() {
         });
 }
 
-// تحميل الموظفين لصفحة إدارة الموظفين
-function loadEmployeesForManagement() {
-    const branch = document.getElementById('empBranchSelect').value;
-    const employeesListView = document.getElementById('employeesListView');
-
-    if (!branch || branch === '-- اختر الفرع --') {
-        employeesListView.innerHTML = '<p class="no-data">الرجاء اختيار الفرع</p>';
-        return;
-    }
-
-    employeesListView.innerHTML = '<div class="loading">جاري تحميل بيانات الموظفين...</div>';
-
-    fetch(`${GOOGLE_SCRIPT_URL}?action=getEmployees&branch=${encodeURIComponent(branch)}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.success && data.employees && data.employees.length > 0) {
-                employeesListView.innerHTML = '<div class="employees-grid">' +
-                    data.employees.map(emp => `
-                        <div class="employee-card">
-                            <h3>${emp.name}</h3>
-                            <p class="emp-title">${emp.title}</p>
-                            <p class="emp-code">كود الموظف: ${emp.code}</p>
-                            
-                            <p class="emp-branch">الفرع: ${emp.branch}</p>
-                            <div class="card-actions">
-                                <button class="edit-btn" onclick="showEditEmployee('${emp.code}')">تعديل</button>
-                                <button class="delete-btn" onclick="deleteEmployee('${emp.code}')">حذف</button>
-                            </div>
-                        </div>
-                    `).join('') +
-                    '</div>';
-            } else {
-                employeesListView.innerHTML = '<p class="no-data">لا يوجد موظفين في هذا الفرع</p>';
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            employeesListView.innerHTML = '<p class="error-message">حدث خطأ في تحميل بيانات الموظفين</p>';
-        });
-}
 
 // تهيئة زر التبديل لنموذج إضافة الموظفين
 document.addEventListener('DOMContentLoaded', function() {
@@ -822,89 +729,3 @@ document.getElementById('penaltyBranchSelect').addEventListener('change', loadEm
 document.getElementById('empBranchSelect').addEventListener('change', loadEmployeesForManagement);
 
 // وظائف تعديل وحذف الموظفين
-function showEditEmployee(employeeCode) {
-    console.log('Editing employee:', employeeCode); // للتحقق من الكود
-    const employeeCard = document.querySelector(`.employee-card[data-employee-id="${employeeCode}"]`);
-    
-    if (employeeCard) {
-        const name = employeeCard.querySelector('h3').textContent;
-        const title = employeeCard.querySelector('.emp-title').textContent;
-        const phone = employeeCard.querySelector('.emp-phone').textContent.replace('رقم الهاتف: ', '');
-        const branch = employeeCard.querySelector('.emp-branch').textContent.replace('الفرع: ', '');
-
-        document.getElementById('editEmpCode').value = employeeCode;
-        document.getElementById('editEmpName').value = name;
-        document.getElementById('editEmpTitle').value = title;
-        document.getElementById('editEmpPhone').value = phone;
-        document.getElementById('editEmpBranch').value = branch;
-        
-        // إظهار النموذج
-        document.getElementById('editEmployeeForm').style.display = 'block';
-    } else {
-        console.error('Employee card not found for code:', employeeCode);
-        alert('حدث خطأ في تحميل بيانات الموظف');
-    }
-}
-
-function hideEditForm() {
-    document.getElementById('editEmployeeForm').style.display = 'none';
-}
-
-document.getElementById('editEmployeeForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    const employeeData = {
-        code: document.getElementById('editEmpCode').value,
-        name: document.getElementById('editEmpName').value,
-        title: document.getElementById('editEmpTitle').value,
-        phone: document.getElementById('editEmpPhone').value,
-        branch: document.getElementById('editEmpBranch').value
-    };
-
-    fetch(GOOGLE_SCRIPT_URL, {
-        method: 'POST',
-        body: JSON.stringify({
-            action: 'updateEmployee',
-            data: employeeData
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert('تم تحديث بيانات الموظف بنجاح');
-            hideEditForm();
-            loadEmployeesForManagement();
-        } else {
-            alert(data.message || 'حدث خطأ في تحديث بيانات الموظف');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('حدث خطأ في تحديث بيانات الموظف');
-    });
-});
-
-function deleteEmployee(employeeCode) {
-    if (confirm('هل أنت متأكد من حذف هذا الموظف؟')) {
-        fetch(GOOGLE_SCRIPT_URL, {
-            method: 'POST',
-            body: JSON.stringify({
-                action: 'deleteEmployee',
-                data: employeeCode
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert('تم حذف الموظف بنجاح');
-                loadEmployeesForManagement();
-            } else {
-                alert(data.message || 'حدث خطأ في حذف الموظف');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('حدث خطأ في حذف الموظف');
-        });
-    }
-}
