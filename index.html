@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام إدارة الموظفين - CafeStation</title>
+    <link rel="icon" href="images/logo.png">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>نظام إدارة الموظفين</h1>
+        <div class="buttons-container">
+            <button onclick="showAddEmployee()">إضافة موظف</button>
+            <button onclick="showAttendance()">تسجيل حضور الموظفين</button>
+            <button onclick="showEvaluation()">تقييم الموظفين</button>
+            <button onclick="showPenalty()">إضافة جزاء</button>
+            <button onclick="showBestEmployee()">تقرير الموظف الأفضل</button>
+        </div>
+
+        <!-- نموذج إضافة موظف -->
+        <div id="addEmployeeForm" class="form-container" style="display: none;">
+            <h2>إدارة الموظفين</h2>
+            <div class="form-group">
+                <label for="empBranchSelect">اختر الفرع:</label>
+                <select id="empBranchSelect" class="form-control">
+                    <option value="">-- اختر الفرع --</option>
+                    <option value="فرع 1">فرع 1</option>
+                    <option value="فرع 2">فرع 2</option>
+                    <option value="فرع 3">فرع 3</option>
+                </select>
+            </div>
+            
+            <!-- قائمة الموظفين -->
+            <div id="employeesListView"></div>
+
+            <!-- زر إضافة موظف جديد -->
+            <button id="toggleAddEmployeeForm" class="toggle-form-btn">إضافة موظف جديد</button>
+
+            <!-- نموذج إضافة موظف جديد -->
+            <form id="employeeForm" style="display: none;">
+                <h3>إضافة موظف جديد</h3>
+                <input type="text" id="empCode" placeholder="كود الموظف" required>
+                <input type="text" id="empName" placeholder="اسم الموظف" required>
+                <input type="text" id="empTitle" placeholder="المسمى الوظيفي" required>
+                <input type="tel" id="empPhone" placeholder="رقم الهاتف" required>
+                <select id="empBranch" required>
+                    <option value="">اختر الفرع</option>
+                    <option value="فرع 1">فرع 1</option>
+                    <option value="فرع 2">فرع 2</option>
+                    <option value="فرع 3">فرع 3</option>
+                </select>
+                <button type="submit">حفظ</button>
+            </form>
+
+            <!-- نموذج تعديل الموظف -->
+            <form id="editEmployeeForm" style="display: none;">
+                <h3>تعديل بيانات الموظف</h3>
+                <input type="hidden" id="editEmpCode">
+                <input type="text" id="editEmpName" placeholder="اسم الموظف" required>
+                <input type="text" id="editEmpTitle" placeholder="المسمى الوظيفي" required>
+                <input type="tel" id="editEmpPhone" placeholder="رقم الهاتف" required>
+                <select id="editEmpBranch" required>
+                    <option value="">اختر الفرع</option>
+                    <option value="فرع 1">فرع 1</option>
+                    <option value="فرع 2">فرع 2</option>
+                    <option value="فرع 3">فرع 3</option>
+                </select>
+                <div class="form-buttons">
+                    <button type="submit">حفظ التعديلات</button>
+                    <button type="button" onclick="hideEditForm()">إلغاء</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- نموذج تسجيل الحضور -->
+        <div id="attendanceForm" class="form-container" style="display: none;">
+            <h2>تسجيل الحضور</h2>
+            <div class="form-group">
+                <label for="branchSelect">اختر الفرع:</label>
+                <select id="branchSelect" class="form-control">
+                    <option value="">-- اختر الفرع --</option>
+                    <option value="فرع 1">فرع 1</option>
+                    <option value="فرع 2">فرع 2</option>
+                    <option value="فرع 3">فرع 3</option>
+                </select>
+            </div>
+            <div id="employeesList"></div>
+            <button onclick="saveAttendance()" class="save-btn">حفظ الحضور</button>
+        </div>
+
+        <!-- نموذج التقييم -->
+        <div id="evaluationForm" class="form-container" style="display: none;">
+            <h2>تقييم الموظفين</h2>
+            <select id="evalBranchSelect">
+                <option value="">اختر الفرع</option>
+                <option value="فرع 1">فرع 1</option>
+                <option value="فرع 2">فرع 2</option>
+                <option value="فرع 3">فرع 3</option>
+            </select>
+            
+            <div class="employees-evaluation-list" id="employeesEvaluationList">
+                <!-- سيتم إضافة الموظفين هنا ديناميكياً -->
+            </div>
+            
+            <button onclick="submitAllEvaluations()" class="save-all-btn">حفظ جميع التقييمات</button>
+        </div>
+
+        <!-- نموذج إضافة جزاء -->
+        <div id="penaltyForm" class="form-container" style="display: none;">
+            <h2>إضافة جزاء</h2>
+            <select id="penaltyBranchSelect">
+                <option value="">اختر الفرع</option>
+                <option value="فرع 1">فرع 1</option>
+                <option value="فرع 2">فرع 2</option>
+                <option value="فرع 3">فرع 3</option>
+            </select>
+            <select id="penaltyEmployeeSelect">
+                <option value="">اختر الموظف</option>
+            </select>
+            <textarea id="penaltyReason" placeholder="سبب الجزاء"></textarea>
+            <input type="number" id="penaltyAmount" placeholder="قيمة الجزاء">
+            <button onclick="submitPenalty()">حفظ الجزاء</button>
+        </div>
+
+        <!-- تقرير الموظف الأفضل -->
+        <div id="bestEmployeeReport" class="form-container" style="display: none;">
+            <h2>تقرير الموظف الأفضل</h2>
+            <div id="bestEmployeeData"></div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
