@@ -1,5 +1,5 @@
 // Google Apps Script URL
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby46nhU6fFxeCh-J1Zk6qxO2ZYVfaO3mJYI3Ro0jI4UrsuiQ4Gy1m7t_YgJI4Ou3HX1IA/exec';
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwToESp18nOSm08QfqWmBQRowF-z1n8ZH4b5-EHTjtAQT6uZ4qyrnlbMAmx5BNBfOnglA/exec';
 
 // التحقق من حالة تسجيل الدخول
 function checkLoginState() {
@@ -7,14 +7,18 @@ function checkLoginState() {
     if (loggedInBranch) {
         document.getElementById('loginForm').style.display = 'none';
         document.querySelector('.container').style.display = 'block';
-        // تعيين الفرع المحدد في جميع القوائم المنسدلة
-        document.querySelectorAll('select').forEach(select => {
-            if (select.id.includes('Branch')) {
-                select.value = loggedInBranch;
-                const event = new Event('change');
-                select.dispatchEvent(event);
-            }
+        
+        // عرض اسم الفرع في جميع الأماكن
+        document.querySelectorAll('.userBranchDisplay').forEach(element => {
+            element.textContent = loggedInBranch;
         });
+        document.getElementById('userBranchDisplay').textContent = loggedInBranch;
+        
+        // تحميل بيانات الموظفين للفرع المحدد تلقائياً
+        loadEmployeesForManagement(loggedInBranch);
+        loadEmployeesByBranch(loggedInBranch);
+        loadEmployeesForEvaluation(loggedInBranch);
+        loadEmployeesForPenalty(loggedInBranch);
     } else {
         document.getElementById('loginForm').style.display = 'flex';
         document.querySelector('.container').style.display = 'none';
@@ -96,9 +100,9 @@ function validateAttendanceSelection() {
 async function saveAttendance() {
     try {
         // التحقق من اختيار الفرع
-        const branch = document.getElementById('branchSelect').value;
+        const branch = localStorage.getItem('userBranch');
         if (!branch) {
-            alert('الرجاء اختيار الفرع أولاً');
+            alert('الرجاء تسجيل الدخول أولاً');
             return;
         }
 
@@ -119,51 +123,99 @@ async function saveAttendance() {
             }
         });
 
+        if (selectedOptions.length === 0) {
+            alert('لم يتم اختيار أي حضور للموظفين');
+            return;
+        }
+
         // إظهار حالة التحميل
-        const saveBtn = document.querySelector('.save-btn');
-        saveBtn.disabled = true;
-        saveBtn.textContent = 'جاري الحفظ...';
+        const saveBtn = document.querySelector('#saveAttendanceButton');
+        if (saveBtn) {
+            saveBtn.disabled = true;
+            saveBtn.textContent = 'جاري الحفظ...';
+        }
         
         const employeesList = document.getElementById('employeesList');
-        employeesList.style.opacity = '0.7';
+        if (employeesList) {
+            employeesList.style.opacity = '0.7';
+        }
 
-        const loadingDiv = document.createElement('div');
-        loadingDiv.className = 'loading-message';
-        loadingDiv.textContent = 'جاري حفظ بيانات الحضور...';
-        employeesList.parentNode.insertBefore(loadingDiv, employeesList.nextSibling);
+        // تحضير البيانات للإرسال
+        const formData = new FormData();
+        formData.append('action', 'recordAttendance');
+        formData.append('data', JSON.stringify(selectedOptions));
 
         // إرسال البيانات باستخدام fetch
         const response = await fetch(GOOGLE_SCRIPT_URL, {
             method: 'POST',
-            mode: 'no-cors',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                action: 'recordAttendance',
-                data: selectedOptions
-            })
+            mode: 'cors',
+            redirect: 'follow',
+            body: formData
         });
+
+        if (!response.ok) {
+            throw new Error(`خطأ في الاستجابة: ${response.status} ${response.statusText}`);
+        }
+
+        let result;
+        try {
+            result = await response.text();
+            console.log('Response:', result);
+            result = JSON.parse(result);
+        } catch (e) {
+            console.error('Error parsing response:', e);
+            throw new Error('خطأ في تحليل استجابة الخادم');
+        }
+
+        if (!result.success) {
+            throw new Error(result.error || 'حدث خطأ غير معروف');
+        }
 
         // إزالة أي رسائل سابقة
         const oldMessages = document.querySelectorAll('.success-message, .error-message');
         oldMessages.forEach(msg => msg.remove());
 
-        // عرض رسالة نجاح بعد فترة قصيرة
-        setTimeout(() => {
-            alert('تم حفظ بيانات الحضور بنجاح');
-        }, 1000);
+        // إعادة تمكين الزر وإخفاء حالة التحميل
+        const saveBtn = document.querySelector('#saveAttendanceButton');
+        if (saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.textContent = 'حفظ الحضور';
+        }
+
+        const employeesList = document.getElementById('employeesList');
+        if (employeesList) {
+            employeesList.style.opacity = '1';
+        }
+
+        // عرض رسالة نجاح
+        alert('تم حفظ بيانات الحضور بنجاح');
+        
+        // إعادة تحميل قائمة الموظفين
+        loadEmployeesByBranch(branch);
 
     } catch (error) {
+        console.error('Error saving attendance:', error);
+        
+        // إعادة تمكين الزر وإخفاء حالة التحميل
+        const saveBtn = document.querySelector('#saveAttendanceButton');
+        if (saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.textContent = 'حفظ الحضور';
+        }
+
+        const employeesList = document.getElementById('employeesList');
+        if (employeesList) {
+            employeesList.style.opacity = '1';
+        }
+
         alert('حدث خطأ: ' + error.message);
     }
 }
 
-function loadEmployeesForManagement() {
-    const branch = document.getElementById('empBranchSelect').value;
+function loadEmployeesForManagement(branch) {
     const employeesListView = document.getElementById('employeesListView');
 
-    if (!branch || branch === '-- اختر الفرع --') {
+    if (!branch) {
         employeesListView.innerHTML = '<div class="alert">الرجاء اختيار الفرع</div>';
         return;
     }
@@ -219,11 +271,10 @@ function loadEmployeesForManagement() {
         });
 }
 
-function loadEmployeesByBranch() {
-    const branch = document.getElementById('branchSelect').value;
+function loadEmployeesByBranch(branch) {
     const employeesList = document.getElementById('employeesList');
 
-    if (!branch || branch === '-- اختر الفرع --') {
+    if (!branch) {
         employeesList.innerHTML = '<div class="alert">الرجاء اختيار الفرع</div>';
         return;
     }
@@ -280,8 +331,7 @@ function loadEmployeesByBranch() {
         });
 }
 
-function loadEmployeesForEvaluation() {
-    const branch = document.getElementById('evalBranchSelect').value;
+function loadEmployeesForEvaluation(branch) {
     const container = document.getElementById('employeesEvaluationList');
     
     if (!branch) {
@@ -312,8 +362,7 @@ function loadEmployeesForEvaluation() {
         });
 }
 
-function loadEmployeesForPenalty() {
-    const branch = document.getElementById('penaltyBranchSelect').value;
+function loadEmployeesForPenalty(branch) {
     if (!branch) {
         document.getElementById('penaltyEmployeeSelect').innerHTML = '<option value="">اختر الموظف</option>';
         return;
@@ -349,26 +398,30 @@ function hideAllForms() {
 function showAddEmployee() {
     hideAllForms();
     document.getElementById('addEmployeeForm').style.display = 'block';
-    loadEmployeesForManagement();
+    const branch = localStorage.getItem('userBranch');
+    loadEmployeesForManagement(branch);
 }
 
 function showAttendance() {
     hideAllForms();
     document.getElementById('attendanceForm').style.display = 'block';
-    loadEmployeesByBranch();
+    const branch = localStorage.getItem('userBranch');
+    loadEmployeesByBranch(branch);
 }
 
 function showEvaluation() {
     hideAllForms();
     document.getElementById('evaluationForm').style.display = 'block';
-    loadEmployeesForEvaluation();
+    const branch = localStorage.getItem('userBranch');
+    loadEmployeesForEvaluation(branch);
     initializeStarRatings();
 }
 
 function showPenalty() {
     hideAllForms();
     document.getElementById('penaltyForm').style.display = 'block';
-    loadEmployeesForPenalty();
+    const branch = localStorage.getItem('userBranch');
+    loadEmployeesForPenalty(branch);
 }
 
 function showBestEmployee() {
@@ -485,7 +538,7 @@ function submitAllEvaluations() {
 }
 
 // إضافة موظف جديد
-document.getElementById('employeeForm').addEventListener('submit', function(e) {
+document.getElementById('employeeForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     const employeeData = {
         code: document.getElementById('empCode').value,
@@ -495,32 +548,55 @@ document.getElementById('employeeForm').addEventListener('submit', function(e) {
         branch: document.getElementById('empBranch').value
     };
 
-    fetch(GOOGLE_SCRIPT_URL, {
-        method: 'POST',
-        body: JSON.stringify({
-            action: 'addEmployee',
-            data: employeeData
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert('تم إضافة الموظف بنجاح');
-            document.getElementById('employeeForm').reset();
-        } else {
-            alert('حدث خطأ أثناء إضافة الموظف');
-        }
-    })
-    .catch(error => {
+    const params = new URLSearchParams();
+    params.append('action', 'addEmployee');
+    params.append('data', JSON.stringify(employeeData));
+
+    try {
+        const response = await fetch(GOOGLE_SCRIPT_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: params.toString()
+        });
+        
+        const result = await response.text();
+        console.log('Response:', result);
+        
+        alert('تم إضافة الموظف بنجاح');
+        document.getElementById('employeeForm').reset();
+        
+        // إعادة تحميل قائمة الموظفين
+        const branch = localStorage.getItem('userBranch');
+        loadEmployeesForManagement(branch);
+    } catch (error) {
         console.error('Error:', error);
-        alert('حدث خطأ في النظام');
-    });
+        alert('حدث خطأ في إضافة الموظف');
+    }
 });
 
 // تحميل الموظفين حسب الفرع
-function loadEmployeesByBranch() {
-    const branch = document.getElementById('branchSelect').value;
+function loadEmployeesByBranch(branch) {
+    if (!branch) {
+        branch = localStorage.getItem('userBranch');
+    }
     if (!branch) return;
+
+    // إضافة زر الحفظ إذا لم يكن موجوداً
+    let saveButton = document.querySelector('#saveAttendanceButton');
+    if (!saveButton) {
+        saveButton = document.createElement('button');
+        saveButton.id = 'saveAttendanceButton';
+        saveButton.className = 'save-btn';
+        saveButton.textContent = 'حفظ الحضور';
+        saveButton.onclick = saveAttendance;
+        
+        const employeesList = document.getElementById('employeesList');
+        if (employeesList) {
+            employeesList.parentElement.insertBefore(saveButton, employeesList.nextSibling);
+        }
+    }
 
     const employeesList = document.getElementById('employeesList');
     employeesList.innerHTML = '<div class="loading">جاري تحميل البيانات...</div>';
@@ -787,25 +863,41 @@ function loadBestEmployee() {
 
 // تهيئة زر التبديل لنموذج إضافة الموظفين
 document.addEventListener('DOMContentLoaded', function() {
+    // تهيئة زر التبديل لنموذج إضافة الموظف
     const toggleButton = document.getElementById('toggleAddEmployeeForm');
     const employeeForm = document.getElementById('employeeForm');
     
-    toggleButton.addEventListener('click', function() {
-        if (employeeForm.style.display === 'none') {
-            employeeForm.style.display = 'block';
-            toggleButton.textContent = 'إخفاء نموذج الإضافة';
-        } else {
-            employeeForm.style.display = 'none';
-            toggleButton.textContent = 'إضافة موظف جديد';
-        }
-    });
-});
+    if (toggleButton && employeeForm) {
+        toggleButton.addEventListener('click', function() {
+            if (employeeForm.style.display === 'none') {
+                employeeForm.style.display = 'block';
+                toggleButton.textContent = 'إخفاء نموذج الإضافة';
+            } else {
+                employeeForm.style.display = 'none';
+                toggleButton.textContent = 'إضافة موظف جديد';
+            }
+        });
+    }
 
-// تحديث قوائم الموظفين عند تغيير الفرع
-document.getElementById('branchSelect').addEventListener('change', loadEmployeesByBranch);
-document.getElementById('evalBranchSelect').addEventListener('change', loadEmployeesForEvaluation);
-document.getElementById('penaltyBranchSelect').addEventListener('change', loadEmployeesForPenalty);
-document.getElementById('empBranchSelect').addEventListener('change', loadEmployeesForManagement);
+    // تحديث قوائم الموظفين عند تغيير الفرع
+    const branchSelect = document.getElementById('branchSelect');
+    const evalBranchSelect = document.getElementById('evalBranchSelect');
+    const penaltyBranchSelect = document.getElementById('penaltyBranchSelect');
+    const empBranchSelect = document.getElementById('empBranchSelect');
+
+    if (branchSelect) {
+        branchSelect.addEventListener('change', () => loadEmployeesByBranch(branchSelect.value));
+    }
+    if (evalBranchSelect) {
+        evalBranchSelect.addEventListener('change', () => loadEmployeesForEvaluation(evalBranchSelect.value));
+    }
+    if (penaltyBranchSelect) {
+        penaltyBranchSelect.addEventListener('change', () => loadEmployeesForPenalty(penaltyBranchSelect.value));
+    }
+    if (empBranchSelect) {
+        empBranchSelect.addEventListener('change', () => loadEmployeesForManagement(empBranchSelect.value));
+    }
+});
 
 // وظائف تعديل وحذف الموظفين
 function showEditForm(code, name, title, phone, branch) {
