@@ -32,6 +32,9 @@ async function handleLoginSubmit(event) {
     const password = document.getElementById('password').value;
     const errorDiv = document.getElementById('loginError');
     
+    // تسجيل وقت تسجيل الدخول
+    localStorage.setItem('loginTime', Date.now().toString());
+    
     try {
         const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=login&email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`);
         const data = await response.json();
@@ -52,14 +55,46 @@ async function handleLoginSubmit(event) {
     return false;
 }
 
+let sessionTimeout;
+
 // تسجيل الخروج
 function logout() {
     localStorage.removeItem('userBranch');
+    localStorage.removeItem('loginTime');
+    clearTimeout(sessionTimeout);
     checkLoginState();
 }
 
+// إعادة تعيين مؤقت الجلسة
+function resetSessionTimer() {
+    clearTimeout(sessionTimeout);
+    sessionTimeout = setTimeout(() => {
+        logout();
+        alert('انتهت الجلسة. الرجاء تسجيل الدخول مرة أخرى.');
+    }, 15 * 60 * 1000); // 15 minutes
+}
+
 // التحقق من حالة تسجيل الدخول عند تحميل الصفحة
-document.addEventListener('DOMContentLoaded', checkLoginState);
+document.addEventListener('DOMContentLoaded', () => {
+    checkLoginState();
+    
+    // التحقق من وقت الجلسة عند تحميل الصفحة
+    const loginTime = localStorage.getItem('loginTime');
+    if (loginTime) {
+        const timeElapsed = Date.now() - parseInt(loginTime);
+        if (timeElapsed > 15 * 60 * 1000) { // 15 minutes
+            logout();
+            alert('انتهت الجلسة. الرجاء تسجيل الدخول مرة أخرى.');
+        } else {
+            resetSessionTimer();
+        }
+    }
+
+    // إعادة تعيين المؤقت عند أي نشاط للمستخدم
+    ['click', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(event => {
+        document.addEventListener(event, resetSessionTimer);
+    });
+});
 
 // تهيئة النجوم
 function initializeStarRatings() {
