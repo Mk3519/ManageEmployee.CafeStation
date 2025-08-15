@@ -9,7 +9,24 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="container">
+    <div id="loginForm" class="login-container">
+        <div class="login-box">
+            <img src="images/logo.png" alt="CafeStation Logo" class="login-logo">
+            <h2>تسجيل الدخول</h2>
+            <form id="loginFormElement" onsubmit="return handleLoginSubmit(event)">
+                <div class="form-group">
+                    <input type="email" id="email" placeholder="البريد الإلكتروني" required>
+                </div>
+                <div class="form-group">
+                    <input type="password" id="password" placeholder="كلمة المرور" required>
+                </div>
+                <button type="submit" class="login-btn">دخول</button>
+                <div id="loginError" class="error-message" style="display: none;"></div>
+            </form>
+        </div>
+    </div>
+
+    <div class="container" style="display: none;">
         <div class="header">
             <img src="images/logo.png" alt="CafeStation Logo" class="company-logo">
             <div class="header-text">
