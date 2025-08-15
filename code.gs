@@ -18,6 +18,8 @@ function doGet(e) {
         return getEmployeesByBranch(e.parameter.branch);
       case 'getBestEmployee':
         return getBestEmployee();
+      case 'login':
+        return handleLogin(e.parameter.email, e.parameter.password);
       default:
         return ContentService.createTextOutput(JSON.stringify({
           success: false,
@@ -41,19 +43,40 @@ function doPost(e) {
     lock.waitLock(30000);
     initializeSpreadsheet(); // Ensure sheets exist before any operation
 
+    console.log('Received POST request:', JSON.stringify(e));
+    
     // تحويل البيانات المستلمة إلى كائن JavaScript
     let data;
     try {
-      if (e.parameter.action === 'recordAttendance') {
-        data = {
-          action: e.parameter.action,
-          data: JSON.parse(e.parameter.data)
-        };
+      const action = e.parameter.action;
+      console.log('Received action:', action);
+      console.log('Received parameters:', JSON.stringify(e.parameter));
+      
+      if (!action) {
+        throw new Error('No action specified');
+      }
+
+      if (e.parameter.data) {
+        try {
+          // محاولة تحليل البيانات كـ JSON
+          data = {
+            action: action,
+            data: JSON.parse(e.parameter.data)
+          };
+        } catch (parseError) {
+          // إذا فشل التحليل، نستخدم البيانات كما هي
+          data = {
+            action: action,
+            data: e.parameter.data
+          };
+        }
       } else if (e.postData && e.postData.contents) {
         data = JSON.parse(e.postData.contents);
       } else {
         throw new Error('No data received');
       }
+      
+      console.log('Final parsed data:', JSON.stringify(data));
     } catch (parseError) {
       console.error('Error parsing data:', parseError, 'Received data:', e.postData ? e.postData.contents : 'No postData');
       return ContentService.createTextOutput(JSON.stringify({
@@ -75,6 +98,10 @@ function doPost(e) {
         return submitEvaluation(data.data);
       case 'addPenalty':
         return addPenalty(data.data);
+      case 'updateEmployee':
+        return updateEmployee(data.data);
+      case 'deleteEmployee':
+        return deleteEmployee(data.data);
       default:
         console.error('Invalid action:', data.action);
         return ContentService.createTextOutput(JSON.stringify({
@@ -108,6 +135,11 @@ function initializeSpreadsheet() {
   if (!ss.getSheetByName('Attendance')) {
     const attendanceSheet = ss.insertSheet('Attendance');
     attendanceSheet.getRange('A1:C1').setValues([['Date', 'Employee Code', 'Status']]);
+  }
+  
+  if (!ss.getSheetByName('Users')) {
+    const usersSheet = ss.insertSheet('Users');
+    usersSheet.getRange('A1:C1').setValues([['Email', 'Password', 'Branch']]);
   }
   
   if (!ss.getSheetByName('Evaluations')) {
@@ -186,6 +218,99 @@ function addEmployee(employeeData) {
   return ContentService.createTextOutput(JSON.stringify({
     success: true
   })).setMimeType(ContentService.MimeType.JSON);
+}
+
+function updateEmployee(employeeData) {
+  console.log('Received update request with data:', employeeData);
+  
+  try {
+    // التحقق من البيانات المستلمة
+    if (typeof employeeData === 'string') {
+      employeeData = JSON.parse(employeeData);
+    }
+    
+    console.log('Parsed employee data:', employeeData);
+    
+    const sheet = SpreadsheetApp.getActive().getSheetByName('Employees');
+    if (!sheet) {
+      throw new Error('لم يتم العثور على ورقة الموظفين');
+    }
+
+    const data = sheet.getDataRange().getValues();
+    
+    // البحث عن الموظف بالكود
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][0] === employeeData.code) {
+        console.log('Found employee at row:', i + 1);
+        
+        // تحديث بيانات الموظف
+        sheet.getRange(i + 1, 1, 1, 5).setValues([[
+          employeeData.code,
+          employeeData.name,
+          employeeData.title,
+          employeeData.phone,
+          employeeData.branch
+        ]]);
+        
+        SpreadsheetApp.flush(); // التأكد من حفظ التغييرات
+        console.log('Employee data updated successfully');
+        
+        return ContentService.createTextOutput(JSON.stringify({
+          success: true,
+          message: 'تم تحديث بيانات الموظف بنجاح'
+        })).setMimeType(ContentService.MimeType.JSON);
+      }
+    }
+    
+    console.log('Employee not found with code:', employeeData.code);
+    return ContentService.createTextOutput(JSON.stringify({
+      success: false,
+      error: 'لم يتم العثور على الموظف'
+    })).setMimeType(ContentService.MimeType.JSON);
+    
+  } catch (error) {
+    console.error('Error in updateEmployee:', error);
+    return ContentService.createTextOutput(JSON.stringify({
+      success: false,
+      error: error.toString()
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+function deleteEmployee(employeeCode) {
+  console.log('Attempting to delete employee with code:', employeeCode);
+  
+  try {
+    const sheet = SpreadsheetApp.getActive().getSheetByName('Employees');
+    const data = sheet.getDataRange().getValues();
+    
+    // البحث عن الموظف بالكود
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][0] === employeeCode) {
+        console.log('Found employee to delete at row:', i + 1);
+        sheet.deleteRow(i + 1);
+        console.log('Employee deleted successfully');
+        
+        return ContentService.createTextOutput(JSON.stringify({
+          success: true,
+          message: 'تم حذف الموظف بنجاح'
+        })).setMimeType(ContentService.MimeType.JSON);
+      }
+    }
+    
+    console.log('Employee not found for deletion');
+    return ContentService.createTextOutput(JSON.stringify({
+      success: false,
+      error: 'لم يتم العثور على الموظف'
+    })).setMimeType(ContentService.MimeType.JSON);
+    
+  } catch (error) {
+    console.error('Error in deleteEmployee:', error);
+    return ContentService.createTextOutput(JSON.stringify({
+      success: false,
+      error: error.toString()
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
 }
 
 function recordAttendance(attendanceData) {
@@ -292,6 +417,34 @@ function addPenalty(penaltyData) {
   return ContentService.createTextOutput(JSON.stringify({
     success: true
   })).setMimeType(ContentService.MimeType.JSON);
+}
+
+function handleLogin(email, password) {
+  try {
+    const sheet = SpreadsheetApp.getActive().getSheetByName('Users');
+    const data = sheet.getDataRange().getValues();
+    
+    // Skip header row and search for user
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][0] === email && data[i][1] === password) {
+        return ContentService.createTextOutput(JSON.stringify({
+          success: true,
+          branch: data[i][2]
+        })).setMimeType(ContentService.MimeType.JSON);
+      }
+    }
+    
+    return ContentService.createTextOutput(JSON.stringify({
+      success: false,
+      message: 'بيانات الدخول غير صحيحة'
+    })).setMimeType(ContentService.MimeType.JSON);
+    
+  } catch (error) {
+    return ContentService.createTextOutput(JSON.stringify({
+      success: false,
+      message: 'حدث خطأ في تسجيل الدخول'
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
 }
 
 function getBestEmployee() {
