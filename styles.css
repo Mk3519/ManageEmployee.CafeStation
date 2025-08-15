@@ -340,6 +340,21 @@ button:hover {
     color: #333;
 }
 
+.branch-display {
+    background-color: #f8f9fa;
+    padding: 10px 15px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+    color: #2c3e50;
+    font-size: 1.2rem;
+    text-align: center;
+}
+
+.userBranchDisplay {
+    color: #3498db;
+    font-weight: bold;
+}
+
 input, select, textarea {
     width: 100%;
     padding: 10px;
@@ -773,3 +788,6 @@ input, select, textarea {
     justify-content: space-between;
     margin-top: 20px;
 }
+
+
+
