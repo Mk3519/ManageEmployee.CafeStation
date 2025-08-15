@@ -1,5 +1,61 @@
 // Google Apps Script URL
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxSDQ_tZTCw7IisRQWt1PnOOIOtPsOAiGInRrvcytThUde8NqPULS--KSRvL88Mk6rlog/exec';
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby46nhU6fFxeCh-J1Zk6qxO2ZYVfaO3mJYI3Ro0jI4UrsuiQ4Gy1m7t_YgJI4Ou3HX1IA/exec';
+
+// التحقق من حالة تسجيل الدخول
+function checkLoginState() {
+    const loggedInBranch = localStorage.getItem('userBranch');
+    if (loggedInBranch) {
+        document.getElementById('loginForm').style.display = 'none';
+        document.querySelector('.container').style.display = 'block';
+        // تعيين الفرع المحدد في جميع القوائم المنسدلة
+        document.querySelectorAll('select').forEach(select => {
+            if (select.id.includes('Branch')) {
+                select.value = loggedInBranch;
+                const event = new Event('change');
+                select.dispatchEvent(event);
+            }
+        });
+    } else {
+        document.getElementById('loginForm').style.display = 'flex';
+        document.querySelector('.container').style.display = 'none';
+    }
+}
+
+// معالجة تسجيل الدخول
+async function handleLoginSubmit(event) {
+    event.preventDefault();
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    const errorDiv = document.getElementById('loginError');
+    
+    try {
+        const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=login&email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`);
+        const data = await response.json();
+        
+        if (data.success) {
+            localStorage.setItem('userBranch', data.branch);
+            checkLoginState();
+            errorDiv.style.display = 'none';
+        } else {
+            errorDiv.textContent = data.message;
+            errorDiv.style.display = 'block';
+        }
+    } catch (error) {
+        errorDiv.textContent = 'حدث خطأ في تسجيل الدخول';
+        errorDiv.style.display = 'block';
+    }
+    
+    return false;
+}
+
+// تسجيل الخروج
+function logout() {
+    localStorage.removeItem('userBranch');
+    checkLoginState();
+}
+
+// التحقق من حالة تسجيل الدخول عند تحميل الصفحة
+document.addEventListener('DOMContentLoaded', checkLoginState);
 
 // تهيئة النجوم
 function initializeStarRatings() {
@@ -752,3 +808,120 @@ document.getElementById('penaltyBranchSelect').addEventListener('change', loadEm
 document.getElementById('empBranchSelect').addEventListener('change', loadEmployeesForManagement);
 
 // وظائف تعديل وحذف الموظفين
+function showEditForm(code, name, title, phone, branch) {
+    // إزالة أي نموذج موجود مسبقاً
+    const existingForm = document.querySelector('.edit-form-overlay');
+    if (existingForm) {
+        existingForm.remove();
+    }
+
+    // إنشاء النموذج
+    const editForm = document.createElement('div');
+    editForm.className = 'edit-form-overlay';
+    editForm.innerHTML = `
+        <div class="edit-form">
+            <h2>تعديل بيانات الموظف</h2>
+            <form id="editEmployeeForm">
+                <div class="form-group">
+                    <label for="editEmpCode">كود الموظف</label>
+                    <input type="text" id="editEmpCode" value="${code}" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="editEmpName">اسم الموظف</label>
+                    <input type="text" id="editEmpName" value="${name}" required>
+                </div>
+                <div class="form-group">
+                    <label for="editEmpTitle">المسمى الوظيفي</label>
+                    <input type="text" id="editEmpTitle" value="${title}" required>
+                </div>
+                <div class="form-group">
+                    <label for="editEmpPhone">رقم الهاتف</label>
+                    <input type="text" id="editEmpPhone" value="${phone}" required>
+                </div>
+                <div class="form-group">
+                    <label for="editEmpBranch">الفرع</label>
+                    <input type="text" id="editEmpBranch" value="${branch}" readonly>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="save-btn">حفظ التغييرات</button>
+                    <button type="button" class="cancel-btn" onclick="closeEditForm()">إلغاء</button>
+                </div>
+            </form>
+        </div>
+    `;
+    
+    document.body.appendChild(editForm);
+
+    // إضافة مستمع الحدث للنموذج
+    const form = document.getElementById('editEmployeeForm');
+    form.onsubmit = async function(e) {
+        e.preventDefault();
+        
+        const saveBtn = this.querySelector('.save-btn');
+        saveBtn.disabled = true;
+        saveBtn.textContent = 'جاري الحفظ...';
+
+        try {
+            const employeeData = {
+                code: this.querySelector('#editEmpCode').value,
+                name: this.querySelector('#editEmpName').value,
+                title: this.querySelector('#editEmpTitle').value,
+                phone: this.querySelector('#editEmpPhone').value,
+                branch: this.querySelector('#editEmpBranch').value
+            };
+
+            const params = new URLSearchParams();
+            params.append('action', 'updateEmployee');
+            params.append('data', JSON.stringify(employeeData));
+
+            const response = await fetch(GOOGLE_SCRIPT_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: params.toString()
+            });
+
+            alert('تم تحديث بيانات الموظف بنجاح');
+            closeEditForm();
+        } catch (error) {
+            console.error('Error updating employee:', error);
+            alert('حدث خطأ أثناء تحديث بيانات الموظف');
+        } finally {
+            saveBtn.disabled = false;
+            saveBtn.textContent = 'حفظ التغييرات';
+        }
+    };
+}
+function closeEditForm() {
+    const overlay = document.querySelector('.edit-form-overlay');
+    if (overlay) {
+        overlay.remove();
+    }
+}
+
+async function deleteEmployee(code) {
+    if (confirm('هل أنت متأكد من حذف هذا الموظف؟')) {
+        try {
+            console.log('Attempting to delete employee with code:', code);
+
+            const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=deleteEmployee&data=${encodeURIComponent(code)}`, {
+                method: 'POST'
+            });
+
+            console.log('Delete response received');
+            
+            // إعادة تحميل قائمة الموظفين بعد فترة قصيرة للتأكد من اكتمال العملية
+            setTimeout(() => {
+
+                alert('تم حذف الموظف بنجاح');
+            }, 1000);
+
+        } catch (error) {
+            console.error('Error:', error);
+            alert('حدث خطأ في النظام: ' + error.message);
+        }
+    }
+}
+
+
