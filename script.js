@@ -212,8 +212,13 @@ async function saveAttendance() {
         employeesContainer.style.opacity = '0.7';
 
         const loadingDiv = document.createElement('div');
-        loadingDiv.className = 'loading-message';
-        loadingDiv.textContent = 'جاري حفظ بيانات الحضور...';
+        loadingDiv.className = 'loading-overlay';
+        loadingDiv.innerHTML = `
+            <div class="loading-container">
+                <div class="loading-circle"></div>
+                <div class="loading-text">جاري حفظ بيانات الحضور...</div>
+            </div>
+        `;
         employeesContainer.parentNode.insertBefore(loadingDiv, employeesContainer.nextSibling);
 
         // إرسال البيانات باستخدام fetch
@@ -250,7 +255,14 @@ function loadEmployeesForManagement(branch) {
         return;
     }
 
-    employeesListView.innerHTML = '<div class="loading">Loading employee data...</div>';
+    employeesListView.innerHTML = `
+        <div class="loading-overlay">
+            <div class="loading-container">
+                <div class="loading-circle"></div>
+                <div class="loading-text">جاري تحميل بيانات الموظفين...</div>
+            </div>
+        </div>
+    `;
 
     fetch(`${GOOGLE_SCRIPT_URL}?action=getEmployees&branch=${encodeURIComponent(branch)}`)
         .then(response => response.json())
@@ -309,7 +321,14 @@ function loadEmployeesByBranch(branch) {
         return;
     }
 
-    employeesList.innerHTML = '<div class="loading">جاري تحميل بيانات الموظفين...</div>';
+    employeesList.innerHTML = `
+        <div class="loading-overlay">
+            <div class="loading-container">
+                <div class="loading-circle"></div>
+                <div class="loading-text">جاري تحميل سجل الحضور...</div>
+            </div>
+        </div>
+    `;
 
     // تنظيف أي رسائل سابقة
     const oldMessages = document.querySelectorAll('.success-message, .error-message');
@@ -369,7 +388,14 @@ function loadEmployeesForEvaluation(branch) {
         return;
     }
 
-    container.innerHTML = '<div class="loading">Loading employee data...</div>';
+    container.innerHTML = `
+        <div class="loading-overlay">
+            <div class="loading-container">
+                <div class="loading-circle"></div>
+                <div class="loading-text">جاري تحميل بيانات التقييم...</div>
+            </div>
+        </div>
+    `;
 
     fetch(`${GOOGLE_SCRIPT_URL}?action=getEmployees&branch=${encodeURIComponent(branch)}`)
         .then(response => response.json())
@@ -518,6 +544,22 @@ function createEmployeeEvaluationCard(employee) {
 }
 
 function submitAllEvaluations() {
+    const container = document.getElementById('evaluationForm');
+    const evaluationsList = document.getElementById('employeesEvaluationList');
+    const saveButton = document.querySelector('.save-all-btn');
+    
+    const loadingOverlay = document.createElement('div');
+    loadingOverlay.className = 'loading-overlay';
+    loadingOverlay.innerHTML = `
+        <div class="loading-container">
+            <div class="loading-circle"></div>
+            <div class="loading-text">جاري حفظ التقييمات...</div>
+        </div>
+    `;
+    container.appendChild(loadingOverlay);
+    evaluationsList.style.opacity = '0.7';
+    saveButton.disabled = true;
+
     const evaluationCards = document.querySelectorAll('.employee-evaluation-card');
     const evaluations = [];
     
@@ -554,6 +596,11 @@ function submitAllEvaluations() {
     })
     .then(response => response.json())
     .then(data => {
+        // إزالة حالة التحميل
+        container.querySelector('.loading-overlay')?.remove();
+        evaluationsList.style.opacity = '1';
+        saveButton.disabled = false;
+
         if (data.success) {
             alert('Evaluations saved successfully');
             loadEmployeesForEvaluation();
@@ -562,6 +609,11 @@ function submitAllEvaluations() {
         }
     })
     .catch(error => {
+        // إزالة حالة التحميل
+        container.querySelector('.loading-overlay')?.remove();
+        evaluationsList.style.opacity = '1';
+        saveButton.disabled = false;
+        
         console.error('Error:', error);
         alert('System error occurred');
     });
@@ -582,6 +634,21 @@ document.getElementById('employeeForm').addEventListener('submit', async functio
     params.append('action', 'addEmployee');
     params.append('data', JSON.stringify(employeeData));
 
+    const form = document.getElementById('employeeForm');
+    const formContainer = form.closest('.form-container');
+    
+    // إظهار حالة التحميل
+    const loadingOverlay = document.createElement('div');
+    loadingOverlay.className = 'loading-overlay';
+    loadingOverlay.innerHTML = `
+        <div class="loading-container">
+            <div class="loading-circle"></div>
+            <div class="loading-text">جاري حفظ بيانات الموظف...</div>
+        </div>
+    `;
+    formContainer.appendChild(loadingOverlay);
+    form.style.opacity = '0.7';
+
     try {
         const response = await fetch(GOOGLE_SCRIPT_URL, {
             method: 'POST',
@@ -594,6 +661,10 @@ document.getElementById('employeeForm').addEventListener('submit', async functio
         const result = await response.text();
         console.log('Response:', result);
         
+        // إزالة حالة التحميل
+        formContainer.querySelector('.loading-overlay')?.remove();
+        form.style.opacity = '1';
+        
         alert('Employee added successfully');
         document.getElementById('employeeForm').reset();
         
@@ -602,6 +673,9 @@ document.getElementById('employeeForm').addEventListener('submit', async functio
         loadEmployeesForManagement(branch);
     } catch (error) {
         console.error('Error:', error);
+        // إزالة حالة التحميل
+        formContainer.querySelector('.loading-overlay')?.remove();
+        form.style.opacity = '1';
         alert('Error adding employee');
     }
 });
@@ -614,7 +688,14 @@ function loadEmployeesByBranch(branch) {
     if (!branch) return;
 
     const employeesList = document.getElementById('employeesList');
-    employeesList.innerHTML = '<div class="loading">جاري تحميل البيانات...</div>';
+    employeesList.innerHTML = `
+        <div class="loading-overlay">
+            <div class="loading-container">
+                <div class="loading-circle"></div>
+                <div class="loading-text">جاري تحميل البيانات...</div>
+            </div>
+        </div>
+    `;
 
     fetch(`${GOOGLE_SCRIPT_URL}?action=getEmployees&branch=${branch}`)
         .then(response => response.json())
@@ -706,11 +787,44 @@ function createEmployeeAttendanceCard(employee) {
     return card;
 }
 
-function submitAttendance() {
+// حفظ بيانات الحضور
+async function saveAttendance() {
+    const attendanceForm = document.getElementById('attendanceForm');
+    const employeesList = document.getElementById('employeesList');
+    const saveButton = attendanceForm.querySelector('.save-btn');
+
+    // التحقق من اختيار الفرع
+    const branch = localStorage.getItem('userBranch');
+    if (!branch) {
+        alert('الرجاء اختيار الفرع أولاً');
+        return;
+    }
+
+    // التحقق من وجود موظفين
+    if (!employeesList) {
+        alert('لا يوجد موظفين لتسجيل حضورهم');
+        return;
+    }
+
+    // التحقق من اختيار حالة الحضور
+    if (!validateAttendanceSelection()) return;
+
+    // إظهار حالة التحميل
+    const loadingOverlay = document.createElement('div');
+    loadingOverlay.className = 'loading-overlay';
+    loadingOverlay.innerHTML = `
+        <div class="loading-container">
+            <div class="loading-circle"></div>
+            <div class="loading-text">جاري حفظ سجل الحضور...</div>
+        </div>
+    `;
+    attendanceForm.appendChild(loadingOverlay);
+    employeesList.style.opacity = '0.7';
+    saveButton.disabled = true;
+
+    // جمع بيانات الحضور
     const attendanceData = [];
-    const cards = document.querySelectorAll('.employee-attendance-card');
-    
-    cards.forEach(card => {
+    document.querySelectorAll('.employee-attendance-card').forEach(card => {
         const employeeId = card.getAttribute('data-employee-id');
         const selectedStatus = card.querySelector('input[type="radio"]:checked');
         
@@ -723,31 +837,40 @@ function submitAttendance() {
         }
     });
 
-    if (attendanceData.length === 0) {
-        alert('الرجاء تحديد حالة الحضور لموظف واحد على الأقل');
-        return;
-    }
+    try {
+        const response = await fetch(GOOGLE_SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify({
+                action: 'recordAttendance',
+                data: attendanceData
+            })
+        });
 
-    fetch(GOOGLE_SCRIPT_URL, {
-        method: 'POST',
-        body: JSON.stringify({
-            action: 'recordAttendance',
-            data: attendanceData
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
+        const data = await response.json();
+
+        // إزالة حالة التحميل قبل عرض الرسائل
+        loadingOverlay.remove();
+        employeesList.style.opacity = '1';
+        saveButton.disabled = false;
+
         if (data.success) {
             alert('تم تسجيل الحضور بنجاح');
+            // إعادة تحميل البيانات بعد النجاح
+            await loadEmployeesByBranch(branch);
         } else {
             alert('حدث خطأ أثناء تسجيل الحضور');
         }
-    })
-    .catch(error => {
+    } catch (error) {
+        // إزالة حالة التحميل في حالة الخطأ
+        loadingOverlay.remove();
+        employeesList.style.opacity = '1';
+        saveButton.disabled = false;
+        
         console.error('Error:', error);
         alert('حدث خطأ في النظام');
-    });
+    }
 }
+
 
 // تهيئة النجوم
 function initializeStarRatings() {
@@ -816,11 +939,26 @@ function submitPenalty() {
     const employeeId = document.getElementById('penaltyEmployeeSelect').value;
     const reason = document.getElementById('penaltyReason').value;
     const amount = document.getElementById('penaltyAmount').value;
+    const form = document.getElementById('penaltyForm');
+    const saveButton = form.querySelector('button');
 
     if (!employeeId || !reason || !amount) {
         alert('الرجاء ملء جميع الحقول');
         return;
     }
+
+    // إظهار حالة التحميل
+    const loadingOverlay = document.createElement('div');
+    loadingOverlay.className = 'loading-overlay';
+    loadingOverlay.innerHTML = `
+        <div class="loading-container">
+            <div class="loading-circle"></div>
+            <div class="loading-text">جاري حفظ الجزاء...</div>
+        </div>
+    `;
+    form.appendChild(loadingOverlay);
+    form.style.opacity = '0.7';
+    saveButton.disabled = true;
 
     fetch(GOOGLE_SCRIPT_URL, {
         method: 'POST',
@@ -836,6 +974,11 @@ function submitPenalty() {
     })
     .then(response => response.json())
     .then(data => {
+        // إزالة حالة التحميل
+        form.querySelector('.loading-overlay')?.remove();
+        form.style.opacity = '1';
+        saveButton.disabled = false;
+
         if (data.success) {
             alert('تم إضافة الجزاء بنجاح');
             document.getElementById('penaltyReason').value = '';
@@ -845,6 +988,11 @@ function submitPenalty() {
         }
     })
     .catch(error => {
+        // إزالة حالة التحميل
+        form.querySelector('.loading-overlay')?.remove();
+        form.style.opacity = '1';
+        saveButton.disabled = false;
+
         console.error('Error:', error);
         alert('حدث خطأ في النظام');
     });
