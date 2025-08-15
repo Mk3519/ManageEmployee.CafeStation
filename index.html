@@ -61,14 +61,7 @@
         <div id="addEmployeeForm" class="form-container" style="display: none;">
             <h2>Staff management</h2>
             <div class="form-group">
-                <label for="empBranchSelect">اختر الفرع:</label>
-                <select id="empBranchSelect" class="form-control">
-                    <option value="">-- اختر الفرع --</option>
-                    <option value="Rehab">Rehab</option>
-                    <option value="Nasr City">Nasr City</option>
-                    <option value="Madinaty">Madinaty</option>
-                  
-                </select>
+                <h3 class="branch-display">الفرع: <span id="userBranchDisplay"></span></h3>
             </div>
             
             <!-- قائمة الموظفين -->
@@ -135,13 +128,7 @@
         <div id="attendanceForm" class="form-container" style="display: none;">
             <h2>تسجيل الحضور</h2>
             <div class="form-group">
-                <label for="branchSelect">اختر الفرع:</label>
-                <select id="branchSelect" class="form-control">
-                    <option value="">-- اختر الفرع --</option>
-                    <option value="Rehab">Rehab</option>
-                    <option value="Nasr City">Nasr City</option>
-                    <option value="Madinaty">Madinaty</option>
-                </select>
+                <h3 class="branch-display">الفرع: <span class="userBranchDisplay"></span></h3>
             </div>
             <div id="employeesList"></div>
             <button onclick="saveAttendance()" class="save-btn">حفظ الحضور</button>
@@ -150,12 +137,7 @@
         <!-- نموذج التقييم -->
         <div id="evaluationForm" class="form-container" style="display: none;">
             <h2>تقييم الموظفين</h2>
-            <select id="evalBranchSelect">
-                <option value="">اختر الفرع</option>
-                <option value="Rehab">Rehab</option>
-                <option value="Nasr City">Nasr City</option>
-                <option value="Madinaty">Madinaty</option>
-            </select>
+            <h3 class="branch-display">الفرع: <span class="userBranchDisplay"></span></h3>
             
             <div class="employees-evaluation-list" id="employeesEvaluationList">
                 <!-- سيتم إضافة الموظفين هنا ديناميكياً -->
@@ -167,12 +149,7 @@
         <!-- نموذج إضافة جزاء -->
         <div id="penaltyForm" class="form-container" style="display: none;">
             <h2>إضافة جزاء</h2>
-            <select id="penaltyBranchSelect">
-                <option value="">اختر الفرع</option>
-                <option value="Rehab">Rehab</option>
-                <option value="Nasr City">Nasr City</option>
-                <option value="Madinaty">Madinaty</option>
-            </select>
+            <h3 class="branch-display">الفرع: <span class="userBranchDisplay"></span></h3>
             <select id="penaltyEmployeeSelect">
                 <option value="">اختر الموظف</option>
             </select>
