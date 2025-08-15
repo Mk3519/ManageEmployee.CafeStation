@@ -1,5 +1,5 @@
 // Google Apps Script URL
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby0DWYb_2Teexq5qZMm6-vuh-F8IPgtOzWxq8F3tkl5OSKrZ7Mcgr7-dC78BNUUgA74/exec';
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxSDQ_tZTCw7IisRQWt1PnOOIOtPsOAiGInRrvcytThUde8NqPULS--KSRvL88Mk6rlog/exec';
 
 // تهيئة النجوم
 function initializeStarRatings() {
@@ -118,18 +118,41 @@ function loadEmployeesForManagement() {
         .then(response => response.json())
         .then(data => {
             if (data.employees && data.employees.length > 0) {
-                employeesListView.innerHTML = '<div class="employees-grid">' +
-                    data.employees.map(emp => `
-                        <div class="employee-card" data-employee-id="${emp.code}">
-                            <h3>${emp.name}</h3>
-                            <p class="emp-title">${emp.title}</p>
-                            <p class="emp-code">كود الموظف: ${emp.code}</p>
-                            <p class="emp-phone">رقم الهاتف: ${emp.phone}</p>
-                            <p class="emp-branch">الفرع: ${emp.branch}</p>
-
-                        </div>
-                    `).join('') +
-                    '</div>';
+                let tableHTML = `
+                    <div class="table-container">
+                        <table class="employees-table">
+                            <thead>
+                                <tr>
+                                    <th>كود الموظف</th>
+                                    <th>اسم الموظف</th>
+                                    <th>المسمى الوظيفي</th>
+                                    <th>رقم الهاتف</th>
+                                    <th>الفرع</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${data.employees.map(emp => `{
+                                    <tr>
+                                        <td>${emp.code}</td>
+                                        <td>${emp.name}</td>
+                                        <td>${emp.title}</td>
+                                        <td>${emp.phone}</td>
+                                        <td>${emp.branch}</td>
+                                        <td>
+                                            <button class="edit-btn" onclick="showEditForm('${emp.code}', '${emp.name}', '${emp.title}', '${emp.phone}', '${emp.branch}')">
+                                                <i class="fas fa-edit"></i> تعديل
+                                            </button>
+                                            <button class="delete-btn" onclick="deleteEmployee('${emp.code}')">
+                                                <i class="fas fa-trash"></i> حذف
+                                            </button>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>`;
+                employeesListView.innerHTML = tableHTML;
             } else {
                 employeesListView.innerHTML = '<p class="no-data">لا يوجد موظفين في هذا الفرع</p>';
             }
