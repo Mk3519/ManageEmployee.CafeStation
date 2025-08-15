@@ -102,7 +102,21 @@ async function saveAttendance() {
         // التحقق من اختيار الفرع
         const branch = localStorage.getItem('userBranch');
         if (!branch) {
-            alert('الرجاء تسجيل الدخول أولاً');
+            alert('الرجاء اختيار الفرع أولاً');
+            return;
+        }
+
+        // التحقق من وجود موظفين تم اختيار حالة حضورهم
+        const employeesContainer = document.getElementById('employeesList');
+        if (!employeesContainer) {
+            alert('لا يوجد موظفين لتسجيل حضورهم');
+            return;
+        }
+        
+        // التحقق من وجود اختيارات للحضور
+        const anySelections = employeesContainer.querySelector('input[type="radio"]:checked');
+        if (!anySelections) {
+            alert('الرجاء تحديد حالة الحضور لموظف واحد على الأقل');
             return;
         }
 
@@ -111,103 +125,54 @@ async function saveAttendance() {
         
         // جمع بيانات الحضور
         const selectedOptions = [];
-        document.querySelectorAll('.employee-card').forEach(card => {
-            const employeeId = card.dataset.employeeId;
-            const selectedRadio = card.querySelector('input[type="radio"]:checked');
-            if (selectedRadio) {
+        document.querySelectorAll('.employee-attendance-card').forEach(card => {
+            // استخراج كود الموظف من معرف عناصر الراديو
+            const radioInput = card.querySelector('input[type="radio"]:checked');
+            if (radioInput) {
+                // استخراج كود الموظف من معرف الراديو (مثال: present_EMP123 -> EMP123)
+                const employeeId = radioInput.id.split('_')[1];
                 selectedOptions.push({
                     employeeId: employeeId,
-                    status: selectedRadio.value,
+                    status: radioInput.value,
                     date: new Date().toISOString().split('T')[0]
                 });
             }
         });
 
-        if (selectedOptions.length === 0) {
-            alert('لم يتم اختيار أي حضور للموظفين');
-            return;
-        }
-
         // إظهار حالة التحميل
-        const saveBtn = document.querySelector('#saveAttendanceButton');
-        if (saveBtn) {
-            saveBtn.disabled = true;
-            saveBtn.textContent = 'جاري الحفظ...';
-        }
+        const saveBtn = document.querySelector('.save-btn');
+        saveBtn.disabled = true;
+        saveBtn.textContent = 'جاري الحفظ...';
         
-        const employeesList = document.getElementById('employeesList');
-        if (employeesList) {
-            employeesList.style.opacity = '0.7';
-        }
+        employeesContainer.style.opacity = '0.7';
 
-        // تحضير البيانات للإرسال
-        const formData = new FormData();
-        formData.append('action', 'recordAttendance');
-        formData.append('data', JSON.stringify(selectedOptions));
+        const loadingDiv = document.createElement('div');
+        loadingDiv.className = 'loading-message';
+        loadingDiv.textContent = 'جاري حفظ بيانات الحضور...';
+        employeesContainer.parentNode.insertBefore(loadingDiv, employeesContainer.nextSibling);
 
         // إرسال البيانات باستخدام fetch
         const response = await fetch(GOOGLE_SCRIPT_URL, {
             method: 'POST',
-            mode: 'cors',
-            redirect: 'follow',
-            body: formData
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `action=recordAttendance&data=${encodeURIComponent(JSON.stringify(selectedOptions))}`
         });
 
-        if (!response.ok) {
-            throw new Error(`خطأ في الاستجابة: ${response.status} ${response.statusText}`);
-        }
-
-        let result;
-        try {
-            result = await response.text();
-            console.log('Response:', result);
-            result = JSON.parse(result);
-        } catch (e) {
-            console.error('Error parsing response:', e);
-            throw new Error('خطأ في تحليل استجابة الخادم');
-        }
-
-        if (!result.success) {
-            throw new Error(result.error || 'حدث خطأ غير معروف');
-        }
+        const result = await response.text();
+        console.log('Response:', result);
 
         // إزالة أي رسائل سابقة
         const oldMessages = document.querySelectorAll('.success-message, .error-message');
         oldMessages.forEach(msg => msg.remove());
 
-        // إعادة تمكين الزر وإخفاء حالة التحميل
-        const saveBtn = document.querySelector('#saveAttendanceButton');
-        if (saveBtn) {
-            saveBtn.disabled = false;
-            saveBtn.textContent = 'حفظ الحضور';
-        }
-
-        const employeesList = document.getElementById('employeesList');
-        if (employeesList) {
-            employeesList.style.opacity = '1';
-        }
-
-        // عرض رسالة نجاح
-        alert('تم حفظ بيانات الحضور بنجاح');
-        
-        // إعادة تحميل قائمة الموظفين
-        loadEmployeesByBranch(branch);
+        // عرض رسالة نجاح بعد فترة قصيرة
+        setTimeout(() => {
+            alert('تم حفظ بيانات الحضور بنجاح');
+        }, 1000);
 
     } catch (error) {
-        console.error('Error saving attendance:', error);
-        
-        // إعادة تمكين الزر وإخفاء حالة التحميل
-        const saveBtn = document.querySelector('#saveAttendanceButton');
-        if (saveBtn) {
-            saveBtn.disabled = false;
-            saveBtn.textContent = 'حفظ الحضور';
-        }
-
-        const employeesList = document.getElementById('employeesList');
-        if (employeesList) {
-            employeesList.style.opacity = '1';
-        }
-
         alert('حدث خطأ: ' + error.message);
     }
 }
@@ -582,21 +547,6 @@ function loadEmployeesByBranch(branch) {
         branch = localStorage.getItem('userBranch');
     }
     if (!branch) return;
-
-    // إضافة زر الحفظ إذا لم يكن موجوداً
-    let saveButton = document.querySelector('#saveAttendanceButton');
-    if (!saveButton) {
-        saveButton = document.createElement('button');
-        saveButton.id = 'saveAttendanceButton';
-        saveButton.className = 'save-btn';
-        saveButton.textContent = 'حفظ الحضور';
-        saveButton.onclick = saveAttendance;
-        
-        const employeesList = document.getElementById('employeesList');
-        if (employeesList) {
-            employeesList.parentElement.insertBefore(saveButton, employeesList.nextSibling);
-        }
-    }
 
     const employeesList = document.getElementById('employeesList');
     employeesList.innerHTML = '<div class="loading">جاري تحميل البيانات...</div>';
