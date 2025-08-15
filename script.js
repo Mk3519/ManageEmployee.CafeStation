@@ -1,20 +1,36 @@
 // Google Apps Script URL
 const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwToESp18nOSm08QfqWmBQRowF-z1n8ZH4b5-EHTjtAQT6uZ4qyrnlbMAmx5BNBfOnglA/exec';
 
-// التحقق من حالة تسجيل الدخول
+// Toggle password visibility
+function togglePassword() {
+    const passwordInput = document.getElementById('password');
+    const toggleButton = document.querySelector('.toggle-password i');
+    
+    if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        toggleButton.classList.remove('fa-eye');
+        toggleButton.classList.add('fa-eye-slash');
+    } else {
+        passwordInput.type = 'password';
+        toggleButton.classList.remove('fa-eye-slash');
+        toggleButton.classList.add('fa-eye');
+    }
+}
+
+// Check login state
 function checkLoginState() {
     const loggedInBranch = localStorage.getItem('userBranch');
     if (loggedInBranch) {
         document.getElementById('loginForm').style.display = 'none';
         document.querySelector('.container').style.display = 'block';
         
-        // عرض اسم الفرع في جميع الأماكن
+        // Display branch name in all places
         document.querySelectorAll('.userBranchDisplay').forEach(element => {
             element.textContent = loggedInBranch;
         });
         document.getElementById('userBranchDisplay').textContent = loggedInBranch;
         
-        // تحميل بيانات الموظفين للفرع المحدد تلقائياً
+        // Load employee data for selected branch automatically
         loadEmployeesForManagement(loggedInBranch);
         loadEmployeesByBranch(loggedInBranch);
         loadEmployeesForEvaluation(loggedInBranch);
@@ -25,14 +41,23 @@ function checkLoginState() {
     }
 }
 
-// معالجة تسجيل الدخول
+// Handle login submission
 async function handleLoginSubmit(event) {
     event.preventDefault();
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
     const errorDiv = document.getElementById('loginError');
+    const loginBtn = event.target.querySelector('.login-btn');
+    const btnText = loginBtn.querySelector('.btn-text');
+    const spinner = loginBtn.querySelector('.loading-spinner');
     
-    // تسجيل وقت تسجيل الدخول
+    // Show loading state
+    btnText.style.opacity = '0';
+    spinner.style.display = 'block';
+    loginBtn.disabled = true;
+    errorDiv.style.display = 'none';
+    
+    // Set login time
     localStorage.setItem('loginTime', Date.now().toString());
     
     try {
@@ -48,8 +73,13 @@ async function handleLoginSubmit(event) {
             errorDiv.style.display = 'block';
         }
     } catch (error) {
-        errorDiv.textContent = 'حدث خطأ في تسجيل الدخول';
+        errorDiv.textContent = 'Login error occurred';
         errorDiv.style.display = 'block';
+    } finally {
+        // Reset button state
+        btnText.style.opacity = '1';
+        spinner.style.display = 'none';
+        loginBtn.disabled = false;
     }
     
     return false;
@@ -57,7 +87,7 @@ async function handleLoginSubmit(event) {
 
 let sessionTimeout;
 
-// تسجيل الخروج
+// Logout function
 function logout() {
     localStorage.removeItem('userBranch');
     localStorage.removeItem('loginTime');
@@ -65,38 +95,38 @@ function logout() {
     checkLoginState();
 }
 
-// إعادة تعيين مؤقت الجلسة
+// Reset session timer
 function resetSessionTimer() {
     clearTimeout(sessionTimeout);
     sessionTimeout = setTimeout(() => {
         logout();
-        alert('انتهت الجلسة. الرجاء تسجيل الدخول مرة أخرى.');
+        alert('Session expired. Please login again.');
     }, 15 * 60 * 1000); // 15 minutes
 }
 
-// التحقق من حالة تسجيل الدخول عند تحميل الصفحة
+// Check login state when page loads
 document.addEventListener('DOMContentLoaded', () => {
     checkLoginState();
     
-    // التحقق من وقت الجلسة عند تحميل الصفحة
+    // Check session time when page loads
     const loginTime = localStorage.getItem('loginTime');
     if (loginTime) {
         const timeElapsed = Date.now() - parseInt(loginTime);
         if (timeElapsed > 15 * 60 * 1000) { // 15 minutes
             logout();
-            alert('انتهت الجلسة. الرجاء تسجيل الدخول مرة أخرى.');
+            alert('Session expired. Please login again.');
         } else {
             resetSessionTimer();
         }
     }
 
-    // إعادة تعيين المؤقت عند أي نشاط للمستخدم
+    // Reset timer on any user activity
     ['click', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(event => {
         document.addEventListener(event, resetSessionTimer);
     });
 });
 
-// تهيئة النجوم
+// Initialize star ratings
 function initializeStarRatings() {
     document.querySelectorAll('.star-rating').forEach(container => {
         container.querySelectorAll('.star').forEach(star => {
@@ -105,7 +135,7 @@ function initializeStarRatings() {
                 const parent = this.closest('.star-rating');
                 parent.setAttribute('data-rating', value);
                 
-                // تحديث حالة النجوم
+                // Update star states
                 parent.querySelectorAll('.star').forEach(s => {
                     if (s.getAttribute('data-value') <= value) {
                         s.classList.add('active');
@@ -120,8 +150,8 @@ function initializeStarRatings() {
     });
 }
 
-// وظائف تحميل الموظفين
-// التحقق من تحديد حالة حضور واحدة فقط
+// Employee loading functions
+// Validate that at least one attendance status is selected
 function validateAttendanceSelection() {
     const selectedCount = document.querySelectorAll('input[type="radio"]:checked').length;
     if (selectedCount === 0) {
@@ -204,11 +234,11 @@ async function saveAttendance() {
 
         // عرض رسالة نجاح بعد فترة قصيرة
         setTimeout(() => {
-            alert('تم حفظ بيانات الحضور بنجاح');
+            alert('Attendance data saved successfully');
         }, 1000);
 
     } catch (error) {
-        alert('حدث خطأ: ' + error.message);
+        alert('Error occurred: ' + error.message);
     }
 }
 
@@ -216,11 +246,11 @@ function loadEmployeesForManagement(branch) {
     const employeesListView = document.getElementById('employeesListView');
 
     if (!branch) {
-        employeesListView.innerHTML = '<div class="alert">الرجاء اختيار الفرع</div>';
+        employeesListView.innerHTML = '<div class="alert">Please select a branch</div>';
         return;
     }
 
-    employeesListView.innerHTML = '<div class="loading">جاري تحميل بيانات الموظفين...</div>';
+    employeesListView.innerHTML = '<div class="loading">Loading employee data...</div>';
 
     fetch(`${GOOGLE_SCRIPT_URL}?action=getEmployees&branch=${encodeURIComponent(branch)}`)
         .then(response => response.json())
@@ -231,12 +261,12 @@ function loadEmployeesForManagement(branch) {
                         <table class="employees-table">
                             <thead>
                                 <tr>
-                                    <th>كود الموظف</th>
-                                    <th>اسم الموظف</th>
-                                    <th>المسمى الوظيفي</th>
-                                    <th>رقم الهاتف</th>
-                                    <th>الفرع</th>
-                                    <th>الإجراءات</th>
+                                    <th>Employee Code</th>
+                                    <th>Employee Name</th>
+                                    <th>Job Title</th>
+                                    <th>Phone Number</th>
+                                    <th>Branch</th>
+                                    <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -275,7 +305,7 @@ function loadEmployeesByBranch(branch) {
     const employeesList = document.getElementById('employeesList');
 
     if (!branch) {
-        employeesList.innerHTML = '<div class="alert">الرجاء اختيار الفرع</div>';
+        employeesList.innerHTML = '<div class="alert">Please select a branch</div>';
         return;
     }
 
@@ -302,32 +332,32 @@ function loadEmployeesByBranch(branch) {
                         </div>
                         <div class="attendance-options">
                             <div class="attendance-option">
-                                <input type="radio" id="present_${employee.code}" name="attendance_${employee.code}" value="حضر">
-                                <label for="present_${employee.code}">حضر</label>
+                                <input type="radio" id="present_${employee.code}" name="attendance_${employee.code}" value="Present">
+                                <label for="present_${employee.code}">Present</label>
                             </div>
                             <div class="attendance-option">
-                                <input type="radio" id="absent_${employee.code}" name="attendance_${employee.code}" value="غياب">
-                                <label for="absent_${employee.code}">غياب</label>
+                                <input type="radio" id="absent_${employee.code}" name="attendance_${employee.code}" value="Absent">
+                                <label for="absent_${employee.code}">Absent</label>
                             </div>
                             <div class="attendance-option">
-                                <input type="radio" id="leave_${employee.code}" name="attendance_${employee.code}" value="اجازة">
-                                <label for="leave_${employee.code}">اجازة</label>
+                                <input type="radio" id="leave_${employee.code}" name="attendance_${employee.code}" value="Leave">
+                                <label for="leave_${employee.code}">Leave</label>
                             </div>
                             <div class="attendance-option">
-                                <input type="radio" id="unauth_leave_${employee.code}" name="attendance_${employee.code}" value="اذن اجازة">
-                                <label for="unauth_leave_${employee.code}">إذن اجازة</label>
+                                <input type="radio" id="unauth_leave_${employee.code}" name="attendance_${employee.code}" value="Unauth Leave">
+                                <label for="unauth_leave_${employee.code}">Unauthorized Leave</label>
                             </div>
                         </div>
                     `;
                     container.appendChild(employeeCard);
                 });
             } else {
-                container.innerHTML = '<div class="no-data">لا يوجد موظفين في هذا الفرع</div>';
+                container.innerHTML = '<div class="no-data">No employees found in this branch</div>';
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            container.innerHTML = '<div class="error">حدث خطأ في تحميل البيانات</div>';
+            container.innerHTML = '<div class="error">Error loading data</div>';
         });
 }
 
@@ -339,7 +369,7 @@ function loadEmployeesForEvaluation(branch) {
         return;
     }
 
-    container.innerHTML = '<div class="loading">جاري تحميل بيانات الموظفين...</div>';
+    container.innerHTML = '<div class="loading">Loading employee data...</div>';
 
     fetch(`${GOOGLE_SCRIPT_URL}?action=getEmployees&branch=${encodeURIComponent(branch)}`)
         .then(response => response.json())
@@ -385,7 +415,7 @@ function loadEmployeesForPenalty(branch) {
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('حدث خطأ في تحميل بيانات الموظفين');
+            alert('Error loading employee data');
         });
 }
 
@@ -442,7 +472,7 @@ function createEmployeeEvaluationCard(employee) {
         </div>
         <div class="evaluation-criteria">
             <div class="criteria-item">
-                <label>النظافة الشخصية</label>
+                <label>Personal Hygiene</label>
                 <div class="star-rating" data-criteria="cleanliness" data-rating="0">
                     <span class="star" data-value="1">☆</span>
                     <span class="star" data-value="2">☆</span>
@@ -511,7 +541,7 @@ function submitAllEvaluations() {
     });
     
     if (evaluations.length === 0) {
-        alert('الرجاء تقييم موظف واحد على الأقل');
+        alert('Please evaluate at least one employee');
         return;
     }
 
@@ -525,19 +555,19 @@ function submitAllEvaluations() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            alert('تم حفظ التقييمات بنجاح');
+            alert('Evaluations saved successfully');
             loadEmployeesForEvaluation();
         } else {
-            alert('حدث خطأ أثناء حفظ التقييمات');
+            alert('Error saving evaluations');
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('حدث خطأ في النظام');
+        alert('System error occurred');
     });
 }
 
-// إضافة موظف جديد
+// Add new employee
 document.getElementById('employeeForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     const employeeData = {
@@ -564,7 +594,7 @@ document.getElementById('employeeForm').addEventListener('submit', async functio
         const result = await response.text();
         console.log('Response:', result);
         
-        alert('تم إضافة الموظف بنجاح');
+        alert('Employee added successfully');
         document.getElementById('employeeForm').reset();
         
         // إعادة تحميل قائمة الموظفين
@@ -572,7 +602,7 @@ document.getElementById('employeeForm').addEventListener('submit', async functio
         loadEmployeesForManagement(branch);
     } catch (error) {
         console.error('Error:', error);
-        alert('حدث خطأ في إضافة الموظف');
+        alert('Error adding employee');
     }
 });
 
@@ -596,7 +626,7 @@ function loadEmployeesByBranch(branch) {
             }
 
             if (!data.employees || data.employees.length === 0) {
-                employeesList.innerHTML = '<div class="alert">لا يوجد موظفين في هذا الفرع</div>';
+                employeesList.innerHTML = '<div class="alert">No employees found in this branch</div>';
                 return;
             }
 
@@ -613,20 +643,20 @@ function loadEmployeesByBranch(branch) {
                         <div class="attendance-options">
                             <div class="radio-group">
                                 <label class="radio-option">
-                                    <input type="radio" name="attendance_${employeeId}" value="حضر">
-                                    <span>حضر</span>
+                                    <input type="radio" name="attendance_${employeeId}" value="Present">
+                                    <span>Present</span>
                                 </label>
                                 <label class="radio-option">
-                                    <input type="radio" name="attendance_${employeeId}" value="غياب">
-                                    <span>غياب</span>
+                                    <input type="radio" name="attendance_${employeeId}" value="Absent">
+                                    <span>Absent</span>
                                 </label>
                                 <label class="radio-option">
-                                    <input type="radio" name="attendance_${employeeId}" value="اجازة">
-                                    <span>اجازة</span>
+                                    <input type="radio" name="attendance_${employeeId}" value="Leave">
+                                    <span>Leave</span>
                                 </label>
                                 <label class="radio-option">
-                                    <input type="radio" name="attendance_${employeeId}" value="اذن اجازة">
-                                    <span>إذن اجازة</span>
+                                    <input type="radio" name="attendance_${employeeId}" value="Unauth Leave">
+                                    <span>Unauthorized Leave</span>
                                 </label>
                             </div>
                         </div>
@@ -638,11 +668,11 @@ function loadEmployeesByBranch(branch) {
         })
         .catch(error => {
             console.error('Error:', error);
-            employeesList.innerHTML = '<div class="error">حدث خطأ في تحميل بيانات الموظفين</div>';
+            employeesList.innerHTML = '<div class="error">Error loading employee data</div>';
         });
 }
 
-// تسجيل الحضور
+// Record Attendance
 function createEmployeeAttendanceCard(employee) {
     const card = document.createElement('div');
     card.className = 'employee-attendance-card';
