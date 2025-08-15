@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html dir="rtl" lang="ar">
+<html dir="ltr" lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,15 +12,23 @@
     <div id="loginForm" class="login-container">
         <div class="login-box">
             <img src="images/logo.png" alt="CafeStation Logo" class="login-logo">
-            <h2>تسجيل الدخول</h2>
+            <h2>Login</h2>
             <form id="loginFormElement" onsubmit="return handleLoginSubmit(event)">
                 <div class="form-group">
-                    <input type="email" id="email" placeholder="البريد الإلكتروني" required>
+                    <input type="email" id="email" placeholder="Email" required>
                 </div>
-                <div class="form-group">
-                    <input type="password" id="password" placeholder="كلمة المرور" required>
+                <div class="form-group password-field">
+                    <input type="password" id="password" placeholder="Password" required>
+                    <button type="button" class="toggle-password" onclick="togglePassword()">
+                        <i class="fas fa-eye"></i>
+                    </button>
                 </div>
-                <button type="submit" class="login-btn">دخول</button>
+                <button type="submit" class="login-btn">
+                    <span class="btn-text">Sign In</span>
+                    <div class="loading-spinner" style="display: none;">
+                        <div class="spinner"></div>
+                    </div>
+                </button>
                 <div id="loginError" class="error-message" style="display: none;"></div>
             </form>
         </div>
@@ -36,8 +44,8 @@
                 </div>
             </div>
             <button class="logout-button" onclick="logout()">
-                <span>تسجيل الخروج</span>
                 <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
             </button>
         </div>
         <div class="buttons-container">
@@ -63,110 +71,110 @@
             </button>
         </div>
 
-        <!-- نموذج إضافة موظف -->
+        <!-- Employee Add Form -->
         <div id="addEmployeeForm" class="form-container" style="display: none;">
-            <h2>Staff management</h2>
+            <h2>Staff Management</h2>
             <div class="form-group">
-                <h3 class="branch-display">الفرع: <span id="userBranchDisplay"></span></h3>
+                <h3 class="branch-display">Branch: <span id="userBranchDisplay"></span></h3>
             </div>
             
-            <!-- قائمة الموظفين -->
+            <!-- Employees List -->
             <div class="table-container">
                 <div id="employeesListView">
                     <table class="employees-table">
                         <thead>
                             <tr>
-                                <th>كود الموظف</th>
-                                <th>اسم الموظف</th>
-                                <th>المسمى الوظيفي</th>
-                                <th>رقم الهاتف</th>
-                                <th>الفرع</th>
-                                <th>الإجراءات</th>
+                                <th>Employee Code</th>
+                                <th>Employee Name</th>
+                                <th>Job Title</th>
+                                <th>Phone Number</th>
+                                <th>Branch</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <!-- سيتم إضافة الموظفين هنا ديناميكياً -->
+                            <!-- Employees will be added here dynamically -->
                         </tbody>
                     </table>
                 </div>
             </div>
 
-            <!-- زر إضافة موظف جديد -->
-            <button id="toggleAddEmployeeForm" class="toggle-form-btn">إضافة موظف جديد</button>
+            <!-- Add New Employee Button -->
+            <button id="toggleAddEmployeeForm" class="toggle-form-btn">Add New Employee</button>
 
-            <!-- نموذج إضافة موظف جديد -->
+            <!-- Add New Employee Form -->
             <form id="employeeForm" style="display: none;">
-                <h3>إضافة موظف جديد</h3>
-                <input type="text" id="empCode" placeholder="كود الموظف" required>
-                <input type="text" id="empName" placeholder="اسم الموظف" required>
-                <input type="text" id="empTitle" placeholder="المسمى الوظيفي" required>
-                <input type="tel" id="empPhone" placeholder="رقم الهاتف" required>
+                <h3>Add New Employee</h3>
+                <input type="text" id="empCode" placeholder="Employee Code" required>
+                <input type="text" id="empName" placeholder="Employee Name" required>
+                <input type="text" id="empTitle" placeholder="Job Title" required>
+                <input type="tel" id="empPhone" placeholder="Phone Number" required>
                 <select id="empBranch" required>
-                    <option value="">اختر الفرع</option>
-                <option value="Rehab">Rehab</option>
-                <option value="Nasr City">Nasr City</option>
-                <option value="Madinaty">Madinaty</option>
+                    <option value="">Select Branch</option>
+                    <option value="Rehab">Rehab</option>
+                    <option value="Nasr City">Nasr City</option>
+                    <option value="Madinaty">Madinaty</option>
                 </select>
-                <button type="submit">حفظ</button>
+                <button type="submit">Save</button>
             </form>
 
-            <!-- نموذج تعديل الموظف -->
+            <!-- Edit Employee Form -->
             <form id="editEmployeeForm" style="display: none;">
-                <h3>تعديل بيانات الموظف</h3>
+                <h3>Edit Employee Details</h3>
                 <input type="hidden" id="editEmpCode">
-                <input type="text" id="editEmpName" placeholder="اسم الموظف" required>
-                <input type="text" id="editEmpTitle" placeholder="المسمى الوظيفي" required>
-                <input type="tel" id="editEmpPhone" placeholder="رقم الهاتف" required>
+                <input type="text" id="editEmpName" placeholder="Employee Name" required>
+                <input type="text" id="editEmpTitle" placeholder="Job Title" required>
+                <input type="tel" id="editEmpPhone" placeholder="Phone Number" required>
                 <select id="editEmpBranch" required>
-                    <option value="">اختر الفرع</option>
-                <option value="Rehab">Rehab</option>
-                <option value="Nasr City">Nasr City</option>
-                <option value="Madinaty">Madinaty</option>
+                    <option value="">Select Branch</option>
+                    <option value="Rehab">Rehab</option>
+                    <option value="Nasr City">Nasr City</option>
+                    <option value="Madinaty">Madinaty</option>
                 </select>
                 <div class="form-buttons">
-                    <button type="submit">حفظ التعديلات</button>
-                    <button type="button" onclick="hideEditForm()">إلغاء</button>
+                    <button type="submit">Save Changes</button>
+                    <button type="button" onclick="hideEditForm()">Cancel</button>
                 </div>
             </form>
         </div>
 
-        <!-- نموذج تسجيل الحضور -->
+        <!-- Attendance Form -->
         <div id="attendanceForm" class="form-container" style="display: none;">
-            <h2>تسجيل الحضور</h2>
+            <h2>Attendance Record</h2>
             <div class="form-group">
-                <h3 class="branch-display">الفرع: <span class="userBranchDisplay"></span></h3>
+                <h3 class="branch-display">Branch: <span class="userBranchDisplay"></span></h3>
             </div>
             <div id="employeesList"></div>
-            <button onclick="saveAttendance()" class="save-btn">حفظ الحضور</button>
+            <button onclick="saveAttendance()" class="save-btn">Save Attendance</button>
         </div>
 
-        <!-- نموذج التقييم -->
+        <!-- Evaluation Form -->
         <div id="evaluationForm" class="form-container" style="display: none;">
-            <h2>تقييم الموظفين</h2>
-            <h3 class="branch-display">الفرع: <span class="userBranchDisplay"></span></h3>
+            <h2>Employee Evaluation</h2>
+            <h3 class="branch-display">Branch: <span class="userBranchDisplay"></span></h3>
             
             <div class="employees-evaluation-list" id="employeesEvaluationList">
-                <!-- سيتم إضافة الموظفين هنا ديناميكياً -->
+                <!-- Employees will be added here dynamically -->
             </div>
             
-            <button onclick="submitAllEvaluations()" class="save-all-btn">حفظ جميع التقييمات</button>
+            <button onclick="submitAllEvaluations()" class="save-all-btn">Save All Evaluations</button>
         </div>
 
-        <!-- نموذج إضافة جزاء -->
+        <!-- Penalty Form -->
         <div id="penaltyForm" class="form-container" style="display: none;">
-            <h2>إضافة جزاء</h2>
-            <h3 class="branch-display">الفرع: <span class="userBranchDisplay"></span></h3>
+            <h2>Add Penalty</h2>
+            <h3 class="branch-display">Branch: <span class="userBranchDisplay"></span></h3>
             <select id="penaltyEmployeeSelect">
-                <option value="">اختر الموظف</option>
+                <option value="">Select Employee</option>
             </select>
-            <textarea id="penaltyReason" placeholder="سبب الجزاء"></textarea>
-            <input type="number" id="penaltyAmount" placeholder="قيمة الجزاء">
-            <button onclick="submitPenalty()">حفظ الجزاء</button>
+            <textarea id="penaltyReason" placeholder="Penalty Reason"></textarea>
+            <input type="number" id="penaltyAmount" placeholder="Penalty Amount">
+            <button onclick="submitPenalty()">Save Penalty</button>
         </div>
 
-        <!-- تقرير الموظف الأفضل -->
+        <!-- Best Employee Report -->
         <div id="bestEmployeeReport" class="form-container" style="display: none;">
-            <h2>تقرير الموظف الأفضل</h2>
+            <h2>Best Employee Report</h2>
             <div id="bestEmployeeData"></div>
         </div>
     </div>
