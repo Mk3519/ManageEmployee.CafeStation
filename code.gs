@@ -465,17 +465,43 @@ function submitEvaluation(evaluationData) {
 }
 
 function addPenalty(penaltyData) {
-  const sheet = SpreadsheetApp.getActive().getSheetByName('Penalties');
-  sheet.appendRow([
-    new Date(penaltyData.date),
-    penaltyData.employeeId,
-    penaltyData.reason,
-    penaltyData.amount
-  ]);
-  
-  return ContentService.createTextOutput(JSON.stringify({
-    success: true
-  })).setMimeType(ContentService.MimeType.JSON);
+  try {
+    console.log('Received penalty data:', JSON.stringify(penaltyData));
+    
+    if (typeof penaltyData === 'string') {
+      penaltyData = JSON.parse(penaltyData);
+    }
+
+    const sheet = SpreadsheetApp.getActive().getSheetByName('Penalties');
+    if (!sheet) {
+      throw new Error('Penalties sheet not found');
+    }
+
+    // Validate required fields
+    if (!penaltyData.employeeId || !penaltyData.reason || !penaltyData.deductionPeriod) {
+      throw new Error('Missing required penalty data');
+    }
+
+    sheet.appendRow([
+      new Date(penaltyData.date),
+      penaltyData.employeeId,
+      penaltyData.reason,
+      penaltyData.deductionPeriod
+    ]);
+    
+    return ContentService.createTextOutput(JSON.stringify({
+      success: true,
+      message: 'تم إضافة الجزاء بنجاح'
+    })).setMimeType(ContentService.MimeType.JSON);
+
+  } catch (error) {
+    console.error('Error in addPenalty:', error);
+    return ContentService.createTextOutput(JSON.stringify({
+      success: false,
+      error: error.toString(),
+      message: 'حدث خطأ في إضافة الجزاء'
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
 }
 
 function handleLogin(email, password) {
