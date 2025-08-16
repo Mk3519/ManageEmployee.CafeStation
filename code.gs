@@ -361,29 +361,17 @@ function recordAttendance(attendanceData) {
 }
 
 function submitEvaluation(evaluationData) {
-  try {
-    console.log('Received evaluation data:', JSON.stringify(evaluationData));
-    
-    const sheet = SpreadsheetApp.getActive().getSheetByName('Evaluations');
-    if (!sheet) {
-      throw new Error('لم يتم العثور على ورقة التقييمات');
-    }
-    
-    // التحقق من صحة البيانات
-    if (typeof evaluationData === 'string') {
-      evaluationData = JSON.parse(evaluationData);
-    }
-    
-    // التعامل مع مصفوفة من التقييمات
-    if (Array.isArray(evaluationData)) {
-      evaluationData.forEach(evaluation => {
-        validateEvaluation(evaluation);
-        const average = (
-          Number(evaluation.cleanliness) +
-          Number(evaluation.appearance) +
-          Number(evaluation.teamwork) +
-          Number(evaluation.punctuality)
-        ) / 4;
+  const sheet = SpreadsheetApp.getActive().getSheetByName('Evaluations');
+  
+  // التعامل مع مصفوفة من التقييمات
+  if (Array.isArray(evaluationData)) {
+    evaluationData.forEach(evaluation => {
+      const average = (
+        Number(evaluation.cleanliness) +
+        Number(evaluation.appearance) +
+        Number(evaluation.teamwork) +
+        Number(evaluation.punctuality)
+      ) / 4;
       
       sheet.appendRow([
         new Date(evaluation.date),
