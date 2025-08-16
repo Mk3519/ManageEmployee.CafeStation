@@ -1,5 +1,5 @@
 // Google Apps Script URL
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby8A-RWa3O-OZefyz9J2CIu5J4Mr1XVZeJc0EG-mNjjX4XCQm8tLkTIbdrmpG7rHSOj8Q/exec';
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxklBPSLXasEIf7Wd4wVaOxpY7kqQc7UNvaz4xe-ROnpZ1W2TgOJg07Baq_oRobppMRfw/exec';
 
 // Toggle password visibility
 function togglePassword() {
@@ -332,7 +332,12 @@ function showPenalty() {
 function showBestEmployee() {
     hideAllForms();
     document.getElementById('bestEmployeeReport').style.display = 'block';
-    loadBestEmployee();
+    const branch = localStorage.getItem('userBranch');
+    if (!branch) {
+        alert('الرجاء تسجيل الدخول أولاً');
+        return;
+    }
+    loadBestEmployee(branch);
 }
 
 function createEmployeeEvaluationCard(employee) {
@@ -844,27 +849,72 @@ function submitPenalty() {
 }
 
 // تحميل بيانات الموظف الأفضل
-function loadBestEmployee() {
-    fetch(`${GOOGLE_SCRIPT_URL}?action=getBestEmployee`)
+function loadBestEmployee(branch) {
+    const bestEmployeeData = document.getElementById('bestEmployeeData');
+    
+    // إظهار حالة التحميل
+    bestEmployeeData.innerHTML = `
+        <div class="loading-overlay">
+            <div class="loading-container">
+                <div class="loading-circle"></div>
+                <div class="loading-text">جاري تحميل بيانات الموظف المثالي...</div>
+            </div>
+        </div>
+    `;
+
+    fetch(`${GOOGLE_SCRIPT_URL}?action=getBestEmployee&branch=${encodeURIComponent(branch)}`)
         .then(response => response.json())
         .then(data => {
-            const bestEmployeeData = document.getElementById('bestEmployeeData');
-            if (data.employee) {
+            console.log('Received data:', data); // للتحقق من البيانات المستلمة
+            
+            if (data.success && data.employee) {
+                const attendanceRate = parseFloat(data.employee.attendanceRate).toFixed(2);
+                const evaluationRate = parseFloat(data.employee.evaluationRate).toFixed(2);
+                const finalScore = parseFloat(data.employee.finalScore).toFixed(2);
+
                 bestEmployeeData.innerHTML = `
-                    <h3>الموظف الأفضل لهذا الشهر</h3>
-                    <p>الاسم: ${data.employee.name}</p>
-                    <p>الفرع: ${data.employee.branch}</p>
-                    <p>المسمى الوظيفي: ${data.employee.title}</p>
-                    <p>متوسط التقييم: ${data.employee.averageRating}</p>
-                    <p>نسبة الحضور: ${data.employee.attendanceRate}%</p>
+                    <div class="best-employee-card">
+                        <h3>الموظف المثالي لشهر ${new Date().toLocaleString('ar-EG', { month: 'long' })}</h3>
+                        <div class="employee-details">
+                            <p><strong>الاسم:</strong> ${data.employee.name}</p>
+                            <p><strong>الفرع:</strong> ${data.employee.branch}</p>
+                            <p><strong>المسمى الوظيفي:</strong> ${data.employee.title}</p>
+                        </div>
+                        <div class="ratings-section">
+                            <h4>تفاصيل التقييم</h4>
+                            <div class="rating-item">
+                                <span>نسبة الحضور (40%):</span>
+                                <div class="progress-bar">
+                                    <div class="progress" style="width: ${attendanceRate}%"></div>
+                                </div>
+                                <span>${attendanceRate}%</span>
+                            </div>
+                            <div class="rating-item">
+                                <span>متوسط التقييم (60%):</span>
+                                <div class="progress-bar">
+                                    <div class="progress" style="width: ${evaluationRate}%"></div>
+                                </div>
+                                <span>${evaluationRate}%</span>
+                            </div>
+                            ${data.employee.hasPenalty ? 
+                                `<div class="penalty-warning">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    يوجد خصم بسبب الجزاءات المسجلة
+                                </div>` : ''}
+                            <div class="final-score">
+                                <strong>التقييم النهائي:</strong>
+                                <span>${finalScore}%</span>
+                            </div>
+                        </div>
+                    </div>
                 `;
             } else {
-                bestEmployeeData.innerHTML = '<p>لا توجد بيانات متاحة</p>';
+                bestEmployeeData.innerHTML = '<div class="no-data">لا توجد بيانات متاحة لهذا الشهر</div>';
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('حدث خطأ في تحميل البيانات');
+            bestEmployeeData.innerHTML = '<div class="error-message">حدث خطأ في تحميل البيانات</div>';
         });
 }
 
