@@ -1,5 +1,5 @@
 // Google Apps Script URL
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxKCJ42QzOKm2qpp9c8PbME55GVKGPuWPbNUOgb93WlnriaEPOcPzRvkTlm5tDcv13rKQ/exec';
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby8A-RWa3O-OZefyz9J2CIu5J4Mr1XVZeJc0EG-mNjjX4XCQm8tLkTIbdrmpG7rHSOj8Q/exec';
 
 // Toggle password visibility
 function togglePassword() {
@@ -779,11 +779,11 @@ function submitEvaluation() {
 function submitPenalty() {
     const employeeId = document.getElementById('penaltyEmployeeSelect').value;
     const reason = document.getElementById('penaltyReason').value;
-    const amount = document.getElementById('penaltyAmount').value;
+    const deductionPeriod = document.getElementById('penaltyAmount').value;
     const form = document.getElementById('penaltyForm');
     const saveButton = form.querySelector('button');
 
-    if (!employeeId || !reason || !amount) {
+    if (!employeeId || !reason || !deductionPeriod) {
         alert('الرجاء ملء جميع الحقول');
         return;
     }
@@ -801,17 +801,21 @@ function submitPenalty() {
     form.style.opacity = '0.7';
     saveButton.disabled = true;
 
+    const params = new URLSearchParams();
+    params.append('action', 'addPenalty');
+    params.append('data', JSON.stringify({
+        employeeId: employeeId,
+        reason: reason,
+        deductionPeriod: deductionPeriod,
+        date: new Date().toISOString()
+    }));
+
     fetch(GOOGLE_SCRIPT_URL, {
         method: 'POST',
-        body: JSON.stringify({
-            action: 'addPenalty',
-            data: {
-                employeeId: employeeId,
-                reason: reason,
-                amount: amount,
-                date: new Date().toISOString()
-            }
-        })
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: params.toString()
     })
     .then(response => response.json())
     .then(data => {
