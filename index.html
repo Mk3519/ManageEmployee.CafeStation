@@ -161,14 +161,27 @@
         </div>
 
         <!-- Penalty Form -->
-        <div id="penaltyForm" class="form-container" style="display: none;">
+        <div id="penaltyForm" class="form-container" style="display: none; direction: ltr; text-align: left;">
             <h2>Add Penalty</h2>
             <h3 class="branch-display">Branch: <span class="userBranchDisplay"></span></h3>
-            <select id="penaltyEmployeeSelect">
+            <select id="penaltyEmployeeSelect" style="text-align: left;">
                 <option value="">Select Employee</option>
             </select>
-            <textarea id="penaltyReason" placeholder="Penalty Reason"></textarea>
-            <input type="number" id="penaltyAmount" placeholder="Penalty Amount">
+            <select id="penaltyReason" required style="text-align: left;">
+                <option value="">Select Penalty Reason</option>
+                <option value="غياب بدون اذن">غياب بدون اذن</option>
+                <option value="بنطلون مخالف">بنطلون مخالف</option>
+                <option value="عدم الالتزام بالتعليمات">عدم الالتزام بالتعليمات</option>
+                <option value="التحدث باسلوب غير لائق">التحدث باسلوب غير لائق</option>
+
+            </select>
+            <select id="penaltyAmount" required style="text-align: left;">
+                <option value="">Select Deduction Amount</option>
+                <option value="ربع يوم">ربع يوم</option>
+                <option value="نصف يوم">نصف يوم</option>
+                <option value="يوم">يوم</option>
+                <option value="ثلاثة ايام">ثلاثة ايام</option>
+            </select>
             <button onclick="submitPenalty()">Save Penalty</button>
         </div>
 
