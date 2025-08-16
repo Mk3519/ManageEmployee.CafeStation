@@ -317,6 +317,11 @@ function recordAttendance(attendanceData) {
   try {
     console.log('Starting recordAttendance with data:', attendanceData);
     
+    // تحويل البيانات من نص JSON إلى كائن إذا كانت نصية
+    if (typeof attendanceData === 'string') {
+      attendanceData = JSON.parse(attendanceData);
+    }
+
     if (!attendanceData || !Array.isArray(attendanceData)) {
       throw new Error('Invalid attendance data format');
     }
@@ -341,12 +346,10 @@ function recordAttendance(attendanceData) {
     
     console.log('Successfully recorded attendance for', attendanceData.length, 'employees');
     
-    // إنشاء صفحة HTML للاستجابة
-    const htmlTemplate = HtmlService.createTemplate(
-      '<script>window.top.postMessage("success", "*");</script>'
-    );
-    
-    return HtmlService.createHtmlOutput(htmlTemplate.evaluate());
+    return ContentService.createTextOutput(JSON.stringify({
+      success: true,
+      message: 'تم تسجيل الحضور بنجاح'
+    })).setMimeType(ContentService.MimeType.JSON);
   } catch (error) {
     console.error('Error in recordAttendance:', error);
     return ContentService.createTextOutput(JSON.stringify({
@@ -358,17 +361,29 @@ function recordAttendance(attendanceData) {
 }
 
 function submitEvaluation(evaluationData) {
-  const sheet = SpreadsheetApp.getActive().getSheetByName('Evaluations');
-  
-  // التعامل مع مصفوفة من التقييمات
-  if (Array.isArray(evaluationData)) {
-    evaluationData.forEach(evaluation => {
-      const average = (
-        Number(evaluation.cleanliness) +
-        Number(evaluation.appearance) +
-        Number(evaluation.teamwork) +
-        Number(evaluation.punctuality)
-      ) / 4;
+  try {
+    console.log('Received evaluation data:', JSON.stringify(evaluationData));
+    
+    const sheet = SpreadsheetApp.getActive().getSheetByName('Evaluations');
+    if (!sheet) {
+      throw new Error('لم يتم العثور على ورقة التقييمات');
+    }
+    
+    // التحقق من صحة البيانات
+    if (typeof evaluationData === 'string') {
+      evaluationData = JSON.parse(evaluationData);
+    }
+    
+    // التعامل مع مصفوفة من التقييمات
+    if (Array.isArray(evaluationData)) {
+      evaluationData.forEach(evaluation => {
+        validateEvaluation(evaluation);
+        const average = (
+          Number(evaluation.cleanliness) +
+          Number(evaluation.appearance) +
+          Number(evaluation.teamwork) +
+          Number(evaluation.punctuality)
+        ) / 4;
       
       sheet.appendRow([
         new Date(evaluation.date),
