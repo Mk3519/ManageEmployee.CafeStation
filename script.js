@@ -874,7 +874,7 @@ function loadBestEmployee(branch) {
 
                 bestEmployeeData.innerHTML = `
                     <div class="best-employee-card">
-                        <h3>الموظف المثالي لشهر ${new Date().toLocaleString('ar-EG', { month: 'long' })}</h3>
+                        <h3>الموظف المثالي لشهر ${new Date().toLocaleString('EG', { month: 'long' })}</h3>
                         <div class="employee-details">
                             <p><strong>الاسم:</strong> ${data.employee.name}</p>
                             <p><strong>الفرع:</strong> ${data.employee.branch}</p>
