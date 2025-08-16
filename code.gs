@@ -17,7 +17,7 @@ function doGet(e) {
       case 'getEmployees':
         return getEmployeesByBranch(e.parameter.branch);
       case 'getBestEmployee':
-        return getBestEmployee();
+        return getBestEmployee(e);
       case 'login':
         return handleLogin(e.parameter.email, e.parameter.password);
       default:
@@ -532,64 +532,175 @@ function handleLogin(email, password) {
   }
 }
 
-function getBestEmployee() {
-  const ss = SpreadsheetApp.getActive();
-  const employeesSheet = ss.getSheetByName('Employees');
-  const evaluationsSheet = ss.getSheetByName('Evaluations');
-  const attendanceSheet = ss.getSheetByName('Attendance');
-  
-  // Get current month's data
-  const today = new Date();
-  const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-  
-  // Calculate average ratings
-  const evaluations = evaluationsSheet.getDataRange().getValues();
-  const attendance = attendanceSheet.getDataRange().getValues();
-  const employees = employeesSheet.getDataRange().getValues();
-  
-  let bestEmployee = null;
-  let highestScore = 0;
-  
-  employees.slice(1).forEach(employee => {
-    const employeeCode = employee[0];
+function getBestEmployee(e) {
+  try {
+    console.log('getBestEmployee called with:', e);
+    const branch = e?.parameter?.branch;
+    console.log('Branch:', branch);
     
-    // Calculate average evaluation score
-    const monthEvaluations = evaluations.slice(1).filter(row => {
-      const date = new Date(row[0]);
-      return date >= firstDayOfMonth && row[1] === employeeCode;
+    if (!branch) {
+      console.log('No branch specified in request');
+      throw new Error('لم يتم تحديد الفرع');
+    }
+
+    const ss = SpreadsheetApp.getActive();
+    const employeesSheet = ss.getSheetByName('Employees');
+    const evaluationsSheet = ss.getSheetByName('Evaluations');
+    const attendanceSheet = ss.getSheetByName('Attendance');
+    const penaltiesSheet = ss.getSheetByName('Penalties');
+    
+    // الحصول على بيانات الشهر الحالي
+    const today = new Date();
+    const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+    
+    // جلب البيانات
+    const employees = employeesSheet.getDataRange().getValues();
+    const evaluations = evaluationsSheet.getDataRange().getValues();
+    const attendance = attendanceSheet.getDataRange().getValues();
+    const penalties = penaltiesSheet.getDataRange().getValues();
+    
+    let bestEmployee = null;
+    let highestScore = 0;
+    
+    // حساب عدد أيام العمل في الشهر (باستثناء الجمعة)
+    const workDaysInMonth = getWorkDaysInMonth(firstDayOfMonth, lastDayOfMonth);
+    
+    // معالجة كل موظف في الفرع المحدد
+    console.log('All employees:', employees.slice(1));
+    const branchEmployees = employees.slice(1).filter(employee => employee[4] === branch);
+    console.log('Branch employees:', branchEmployees);
+    
+    branchEmployees.forEach(employee => {
+        const employeeCode = employee[0];
+        console.log('Processing employee:', employee);
+        
+        // حساب نسبة الحضور
+        const attendanceRate = calculateAttendanceRate(
+          attendance.slice(1),
+          employeeCode,
+          firstDayOfMonth,
+          workDaysInMonth
+        );
+        
+        // حساب متوسط التقييمات
+        const evaluationRate = calculateEvaluationRate(
+          evaluations.slice(1),
+          employeeCode,
+          firstDayOfMonth
+        );
+        
+        // التحقق من وجود جزاءات
+        const penaltyInfo = checkPenalties(
+          penalties.slice(1),
+          employeeCode,
+          firstDayOfMonth
+        );
+        
+        // حساب التقييم النهائي
+        // 40% للحضور + 60% للتقييم - خصم الجزاءات
+        const finalScore = calculateFinalScore(attendanceRate, evaluationRate, penaltyInfo.deduction);
+        
+        if (finalScore > highestScore) {
+          highestScore = finalScore;
+          bestEmployee = {
+            name: employee[1],
+            branch: employee[4],
+            title: employee[2],
+            attendanceRate: attendanceRate,
+            evaluationRate: evaluationRate,
+            hasPenalty: penaltyInfo.hasPenalty,
+            finalScore: finalScore
+          };
+        }
     });
     
-    const averageRating = monthEvaluations.reduce((acc, row) => acc + row[6], 0) / 
-      (monthEvaluations.length || 1);
+    const response = {
+      success: true,
+      employee: bestEmployee,
+      debug: {
+        employeesCount: employees.length - 1,
+        branchEmployeesCount: employees.slice(1).filter(emp => emp[4] === branch).length,
+        evaluationsCount: evaluations.length - 1,
+        attendanceCount: attendance.length - 1,
+        penaltiesCount: penalties.length - 1
+      }
+    };
     
-    // Calculate attendance rate
-    const totalDays = new Set(attendance.slice(1)
-      .filter(row => new Date(row[0]) >= firstDayOfMonth)
-      .map(row => row[0].toDateString())).size;
+    console.log('Final response:', response);
     
-    const employeeAttendance = attendance.slice(1).filter(row => 
-      new Date(row[0]) >= firstDayOfMonth && row[1] === employeeCode
-    ).length;
+    return ContentService.createTextOutput(JSON.stringify(response))
+      .setMimeType(ContentService.MimeType.JSON);
     
-    const attendanceRate = (employeeAttendance / totalDays) * 100;
-    
-    // Calculate total score (50% evaluation, 50% attendance)
-    const totalScore = (averageRating * 10) * 0.5 + attendanceRate * 0.5;
-    
-    if (totalScore > highestScore) {
-      highestScore = totalScore;
-      bestEmployee = {
-        name: employee[1],
-        branch: employee[4],
-        title: employee[2],
-        averageRating: averageRating.toFixed(2),
-        attendanceRate: attendanceRate.toFixed(2)
-      };
+  } catch (error) {
+    console.error('Error in getBestEmployee:', error);
+    return ContentService.createTextOutput(JSON.stringify({
+      success: false,
+      error: error.toString()
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+// دالة لحساب أيام العمل في الشهر (باستثناء الجمعة)
+function getWorkDaysInMonth(startDate, endDate) {
+  let workDays = 0;
+  const currentDate = new Date(startDate);
+  
+  while (currentDate <= endDate) {
+    if (currentDate.getDay() !== 5) { // 5 يمثل يوم الجمعة
+      workDays++;
     }
+    currentDate.setDate(currentDate.getDate() + 1);
+  }
+  
+  return workDays;
+}
+
+// دالة لحساب نسبة الحضور
+function calculateAttendanceRate(attendanceData, employeeCode, startDate, workDays) {
+  const presentDays = attendanceData.filter(row => {
+    const date = new Date(row[0]);
+    return date >= startDate && 
+           row[1] === employeeCode && 
+           row[2] === 'Present';
+  }).length;
+  
+  return (presentDays / workDays) * 100;
+}
+
+// دالة لحساب متوسط التقييمات
+function calculateEvaluationRate(evaluationsData, employeeCode, startDate) {
+  const monthEvaluations = evaluationsData.filter(row => {
+    const date = new Date(row[0]);
+    return date >= startDate && row[1] === employeeCode;
   });
   
-  return ContentService.createTextOutput(JSON.stringify({
-    success: true,
-    employee: bestEmployee
-  })).setMimeType(ContentService.MimeType.JSON);
+  if (monthEvaluations.length === 0) {
+    return 0;
+  }
+  
+  const averageRating = monthEvaluations.reduce((acc, row) => {
+    // حساب متوسط التقييمات (النظافة، المظهر، العمل الجماعي، الالتزام بالمواعيد)
+    return acc + ((row[2] + row[3] + row[4] + row[5]) / 4);
+  }, 0) / monthEvaluations.length;
+  
+  return (averageRating / 5) * 100; // تحويل التقييم إلى نسبة مئوية
+}
+
+// دالة للتحقق من الجزاءات
+function checkPenalties(penaltiesData, employeeCode, startDate) {
+  const monthPenalties = penaltiesData.filter(row => {
+    const date = new Date(row[0]);
+    return date >= startDate && row[1] === employeeCode;
+  });
+  
+  return {
+    hasPenalty: monthPenalties.length > 0,
+    deduction: monthPenalties.length > 0 ? 10 : 0 // خصم 10% في حالة وجود جزاءات
+  };
+}
+
+// دالة لحساب التقييم النهائي
+function calculateFinalScore(attendanceRate, evaluationRate, penaltyDeduction) {
+  return Math.max(0, (attendanceRate * 0.4) + (evaluationRate * 0.6) - penaltyDeduction);
 }
