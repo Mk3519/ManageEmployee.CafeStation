@@ -361,51 +361,107 @@ function recordAttendance(attendanceData) {
 }
 
 function submitEvaluation(evaluationData) {
-  const sheet = SpreadsheetApp.getActive().getSheetByName('Evaluations');
-  
-  // التعامل مع مصفوفة من التقييمات
-  if (Array.isArray(evaluationData)) {
-    evaluationData.forEach(evaluation => {
-      const average = (
-        Number(evaluation.cleanliness) +
-        Number(evaluation.appearance) +
-        Number(evaluation.teamwork) +
+  try {
+    console.log('Starting submitEvaluation with data:', JSON.stringify(evaluationData));
+    
+    // تحويل البيانات من نص JSON إلى كائن إذا كانت نصية
+    if (typeof evaluationData === 'string') {
+      evaluationData = JSON.parse(evaluationData);
+    }
+
+    const sheet = SpreadsheetApp.getActive().getSheetByName('Evaluations');
+    if (!sheet) {
+      throw new Error('لم يتم العثور على ورقة التقييمات');
+    }
+
+    // التحقق من صحة البيانات
+    function validateEvaluation(evaluation) {
+      if (!evaluation.date || !evaluation.employeeId ||
+          !evaluation.cleanliness || !evaluation.appearance ||
+          !evaluation.teamwork || !evaluation.punctuality) {
+        throw new Error('بيانات التقييم غير مكتملة');
+      }
+      
+      // التأكد من أن القيم رقمية وضمن النطاق المقبول (1-5)
+      const ratings = [
+        Number(evaluation.cleanliness),
+        Number(evaluation.appearance),
+        Number(evaluation.teamwork),
         Number(evaluation.punctuality)
-      ) / 4;
+      ];
+      
+      ratings.forEach(rating => {
+        if (isNaN(rating) || rating < 1 || rating > 5) {
+          throw new Error('قيم التقييم يجب أن تكون بين 1 و 5');
+        }
+      });
+      
+      return ratings;
+    }
+
+    // معالجة التقييمات
+    function processEvaluation(evaluation) {
+      const ratings = validateEvaluation(evaluation);
+      const average = ratings.reduce((a, b) => a + b, 0) / ratings.length;
       
       sheet.appendRow([
         new Date(evaluation.date),
         evaluation.employeeId,
-        evaluation.cleanliness,
-        evaluation.appearance,
-        evaluation.teamwork,
-        evaluation.punctuality,
+        ratings[0], // cleanliness
+        ratings[1], // appearance
+        ratings[2], // teamwork
+        ratings[3], // punctuality
         average
       ]);
-    });
-  } else {
-    // التعامل مع تقييم واحد
-    const average = (
-      Number(evaluationData.cleanliness) +
-      Number(evaluationData.appearance) +
-      Number(evaluationData.teamwork) +
-      Number(evaluationData.punctuality)
-    ) / 4;
+      
+      return average;
+    }
+
+    let results = [];
+    if (Array.isArray(evaluationData)) {
+      // معالجة مصفوفة من التقييمات
+      evaluationData.forEach((evaluation, index) => {
+        try {
+          const average = processEvaluation(evaluation);
+          results.push({
+            employeeId: evaluation.employeeId,
+            success: true,
+            average: average
+          });
+        } catch (err) {
+          results.push({
+            employeeId: evaluation.employeeId,
+            success: false,
+            error: err.message
+          });
+        }
+      });
+    } else {
+      // معالجة تقييم واحد
+      const average = processEvaluation(evaluationData);
+      results.push({
+        employeeId: evaluationData.employeeId,
+        success: true,
+        average: average
+      });
+    }
+
+    console.log('Evaluation results:', results);
     
-    sheet.appendRow([
-      new Date(evaluationData.date),
-      evaluationData.employeeId,
-      evaluationData.cleanliness,
-      evaluationData.appearance,
-      evaluationData.teamwork,
-      evaluationData.punctuality,
-      average
-    ]);
+    return ContentService.createTextOutput(JSON.stringify({
+      success: true,
+      results: results,
+      message: 'تم حفظ التقييم بنجاح'
+    })).setMimeType(ContentService.MimeType.JSON);
+    
+  } catch (error) {
+    console.error('Error in submitEvaluation:', error);
+    return ContentService.createTextOutput(JSON.stringify({
+      success: false,
+      error: error.toString(),
+      message: 'حدث خطأ في حفظ التقييم'
+    })).setMimeType(ContentService.MimeType.JSON);
   }
-  
-  return ContentService.createTextOutput(JSON.stringify({
-    success: true
-  })).setMimeType(ContentService.MimeType.JSON);
 }
 
 function addPenalty(penaltyData) {
