@@ -1,5 +1,5 @@
 // Google Apps Script URL
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwToESp18nOSm08QfqWmBQRowF-z1n8ZH4b5-EHTjtAQT6uZ4qyrnlbMAmx5BNBfOnglA/exec';
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxG1UbzZmhggUpxoLJvvfjxjec2AqVHfiW_t27dxzn5JK7gZbict5X_5HXREiWl__pJIw/exec';
 
 // Toggle password visibility
 function togglePassword() {
@@ -161,91 +161,6 @@ function validateAttendanceSelection() {
     return true;
 }
 
-// حفظ بيانات الحضور
-async function saveAttendance() {
-    try {
-        // التحقق من اختيار الفرع
-        const branch = localStorage.getItem('userBranch');
-        if (!branch) {
-            alert('الرجاء اختيار الفرع أولاً');
-            return;
-        }
-
-        // التحقق من وجود موظفين تم اختيار حالة حضورهم
-        const employeesContainer = document.getElementById('employeesList');
-        if (!employeesContainer) {
-            alert('لا يوجد موظفين لتسجيل حضورهم');
-            return;
-        }
-        
-        // التحقق من وجود اختيارات للحضور
-        const anySelections = employeesContainer.querySelector('input[type="radio"]:checked');
-        if (!anySelections) {
-            alert('الرجاء تحديد حالة الحضور لموظف واحد على الأقل');
-            return;
-        }
-
-        // التحقق من اختيار حالة الحضور
-        if (!validateAttendanceSelection()) return;
-        
-        // جمع بيانات الحضور
-        const selectedOptions = [];
-        document.querySelectorAll('.employee-attendance-card').forEach(card => {
-            // استخراج كود الموظف من معرف عناصر الراديو
-            const radioInput = card.querySelector('input[type="radio"]:checked');
-            if (radioInput) {
-                // استخراج كود الموظف من معرف الراديو (مثال: present_EMP123 -> EMP123)
-                const employeeId = radioInput.id.split('_')[1];
-                selectedOptions.push({
-                    employeeId: employeeId,
-                    status: radioInput.value,
-                    date: new Date().toISOString().split('T')[0]
-                });
-            }
-        });
-
-        // إظهار حالة التحميل
-        const saveBtn = document.querySelector('.save-btn');
-        saveBtn.disabled = true;
-        saveBtn.textContent = 'جاري الحفظ...';
-        
-        employeesContainer.style.opacity = '0.7';
-
-        const loadingDiv = document.createElement('div');
-        loadingDiv.className = 'loading-overlay';
-        loadingDiv.innerHTML = `
-            <div class="loading-container">
-                <div class="loading-circle"></div>
-                <div class="loading-text">جاري حفظ بيانات الحضور...</div>
-            </div>
-        `;
-        employeesContainer.parentNode.insertBefore(loadingDiv, employeesContainer.nextSibling);
-
-        // إرسال البيانات باستخدام fetch
-        const response = await fetch(GOOGLE_SCRIPT_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: `action=recordAttendance&data=${encodeURIComponent(JSON.stringify(selectedOptions))}`
-        });
-
-        const result = await response.text();
-        console.log('Response:', result);
-
-        // إزالة أي رسائل سابقة
-        const oldMessages = document.querySelectorAll('.success-message, .error-message');
-        oldMessages.forEach(msg => msg.remove());
-
-        // عرض رسالة نجاح بعد فترة قصيرة
-        setTimeout(() => {
-            alert('Attendance data saved successfully');
-        }, 1000);
-
-    } catch (error) {
-        alert('Error occurred: ' + error.message);
-    }
-}
 
 function loadEmployeesForManagement(branch) {
     const employeesListView = document.getElementById('employeesListView');
@@ -282,7 +197,7 @@ function loadEmployeesForManagement(branch) {
                                 </tr>
                             </thead>
                             <tbody>
-                                ${data.employees.map(emp => `{
+                                ${data.employees.map(emp => `
                                     <tr>
                                         <td>${emp.code}</td>
                                         <td>${emp.name}</td>
@@ -313,72 +228,6 @@ function loadEmployeesForManagement(branch) {
         });
 }
 
-function loadEmployeesByBranch(branch) {
-    const employeesList = document.getElementById('employeesList');
-
-    if (!branch) {
-        employeesList.innerHTML = '<div class="alert">Please select a branch</div>';
-        return;
-    }
-
-    employeesList.innerHTML = `
-        <div class="loading-overlay">
-            <div class="loading-container">
-                <div class="loading-circle"></div>
-                <div class="loading-text">جاري تحميل سجل الحضور...</div>
-            </div>
-        </div>
-    `;
-
-    // تنظيف أي رسائل سابقة
-    const oldMessages = document.querySelectorAll('.success-message, .error-message');
-    oldMessages.forEach(msg => msg.remove());
-
-    fetch(`${GOOGLE_SCRIPT_URL}?action=getEmployees&branch=${encodeURIComponent(branch)}`)
-    .then(response => response.json())
-    .then(data => {
-        console.log('Received data:', data); // للتحقق من البيانات
-        employeesList.innerHTML = '';
-            
-            if (data.employees && data.employees.length > 0) {
-                data.employees.forEach(employee => {
-                    const employeeCard = document.createElement('div');
-                    employeeCard.className = 'employee-attendance-card';
-                    employeeCard.innerHTML = `
-                        <div class="employee-info">
-                            <h3>${employee.name}</h3>
-                            <p>${employee.title}</p>
-                        </div>
-                        <div class="attendance-options">
-                            <div class="attendance-option">
-                                <input type="radio" id="present_${employee.code}" name="attendance_${employee.code}" value="Present">
-                                <label for="present_${employee.code}">Present</label>
-                            </div>
-                            <div class="attendance-option">
-                                <input type="radio" id="absent_${employee.code}" name="attendance_${employee.code}" value="Absent">
-                                <label for="absent_${employee.code}">Absent</label>
-                            </div>
-                            <div class="attendance-option">
-                                <input type="radio" id="leave_${employee.code}" name="attendance_${employee.code}" value="Leave">
-                                <label for="leave_${employee.code}">Leave</label>
-                            </div>
-                            <div class="attendance-option">
-                                <input type="radio" id="unauth_leave_${employee.code}" name="attendance_${employee.code}" value="Unauth Leave">
-                                <label for="unauth_leave_${employee.code}">Unauthorized Leave</label>
-                            </div>
-                        </div>
-                    `;
-                    container.appendChild(employeeCard);
-                });
-            } else {
-                container.innerHTML = '<div class="no-data">No employees found in this branch</div>';
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            container.innerHTML = '<div class="error">Error loading data</div>';
-        });
-}
 
 function loadEmployeesForEvaluation(branch) {
     const container = document.getElementById('employeesEvaluationList');
@@ -716,7 +565,7 @@ function loadEmployeesByBranch(branch) {
             data.employees.forEach(employee => {
                 const employeeId = employee.code;
                 html += `
-                    <div class="employee-card" data-employee-id="${employeeId}">
+                    <div class="employee-card" data-employee-id="${employee.code}">
                         <div class="employee-info">
                             <div class="employee-name">${employee.name}</div>
                             <div class="employee-title">${employee.title}</div>
@@ -724,19 +573,19 @@ function loadEmployeesByBranch(branch) {
                         <div class="attendance-options">
                             <div class="radio-group">
                                 <label class="radio-option">
-                                    <input type="radio" name="attendance_${employeeId}" value="Present">
+                                    <input type="radio" name="attendance_${employee.code}" value="Present">
                                     <span>Present</span>
                                 </label>
                                 <label class="radio-option">
-                                    <input type="radio" name="attendance_${employeeId}" value="Absent">
+                                    <input type="radio" name="attendance_${employee.code}" value="Absent">
                                     <span>Absent</span>
                                 </label>
                                 <label class="radio-option">
-                                    <input type="radio" name="attendance_${employeeId}" value="Leave">
+                                    <input type="radio" name="attendance_${employee.code}" value="Leave">
                                     <span>Leave</span>
                                 </label>
                                 <label class="radio-option">
-                                    <input type="radio" name="attendance_${employeeId}" value="Unauth Leave">
+                                    <input type="radio" name="attendance_${employee.code}" value="Unauth Leave">
                                     <span>Unauthorized Leave</span>
                                 </label>
                             </div>
@@ -753,39 +602,6 @@ function loadEmployeesByBranch(branch) {
         });
 }
 
-// Record Attendance
-function createEmployeeAttendanceCard(employee) {
-    const card = document.createElement('div');
-    card.className = 'employee-attendance-card';
-    card.setAttribute('data-employee-id', employee.code);
-    
-    card.innerHTML = `
-        <div class="employee-info">
-            <h3>${employee.name}</h3>
-            <p>${employee.title}</p>
-        </div>
-        <div class="attendance-options">
-            <div class="attendance-option">
-                <input type="radio" id="present_${employee.code}" name="attendance_${employee.code}" value="حضر">
-                <label for="present_${employee.code}">حضر</label>
-            </div>
-            <div class="attendance-option">
-                <input type="radio" id="absent_${employee.code}" name="attendance_${employee.code}" value="غياب">
-                <label for="absent_${employee.code}">غياب</label>
-            </div>
-            <div class="attendance-option">
-                <input type="radio" id="leave_${employee.code}" name="attendance_${employee.code}" value="اجازة">
-                <label for="leave_${employee.code}">اجازة</label>
-            </div>
-            <div class="attendance-option">
-                <input type="radio" id="unauth_leave_${employee.code}" name="attendance_${employee.code}" value="اذن اجازة">
-                <label for="unauth_leave_${employee.code}">إذن اجازة</label>
-            </div>
-        </div>
-    `;
-    
-    return card;
-}
 
 // حفظ بيانات الحضور
 async function saveAttendance() {
@@ -824,7 +640,7 @@ async function saveAttendance() {
 
     // جمع بيانات الحضور
     const attendanceData = [];
-    document.querySelectorAll('.employee-attendance-card').forEach(card => {
+    document.querySelectorAll('.employee-card').forEach(card => {
         const employeeId = card.getAttribute('data-employee-id');
         const selectedStatus = card.querySelector('input[type="radio"]:checked');
         
@@ -838,12 +654,16 @@ async function saveAttendance() {
     });
 
     try {
+        const params = new URLSearchParams();
+        params.append('action', 'recordAttendance');
+        params.append('data', JSON.stringify(attendanceData));
+
         const response = await fetch(GOOGLE_SCRIPT_URL, {
             method: 'POST',
-            body: JSON.stringify({
-                action: 'recordAttendance',
-                data: attendanceData
-            })
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: params.toString()
         });
 
         const data = await response.json();
