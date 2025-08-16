@@ -1,5 +1,5 @@
 // Google Apps Script URL
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxG1UbzZmhggUpxoLJvvfjxjec2AqVHfiW_t27dxzn5JK7gZbict5X_5HXREiWl__pJIw/exec';
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxKCJ42QzOKm2qpp9c8PbME55GVKGPuWPbNUOgb93WlnriaEPOcPzRvkTlm5tDcv13rKQ/exec';
 
 // Toggle password visibility
 function togglePassword() {
@@ -432,16 +432,37 @@ function submitAllEvaluations() {
     });
     
     if (evaluations.length === 0) {
-        alert('Please evaluate at least one employee');
+        alert('الرجاء تقييم موظف واحد على الأقل');
+        container.querySelector('.loading-overlay')?.remove();
+        evaluationsList.style.opacity = '1';
+        saveButton.disabled = false;
         return;
     }
 
+    // التحقق من صحة القيم
+    const invalidEvaluations = evaluations.filter(eval => 
+        !eval.cleanliness || !eval.appearance || !eval.teamwork || !eval.punctuality ||
+        eval.cleanliness === "0" || eval.appearance === "0" || eval.teamwork === "0" || eval.punctuality === "0"
+    );
+
+    if (invalidEvaluations.length > 0) {
+        alert('الرجاء إكمال جميع معايير التقييم لكل موظف تم اختياره');
+        container.querySelector('.loading-overlay')?.remove();
+        evaluationsList.style.opacity = '1';
+        saveButton.disabled = false;
+        return;
+    }
+
+    const params = new URLSearchParams();
+    params.append('action', 'submitEvaluation');
+    params.append('data', JSON.stringify(evaluations));
+
     fetch(GOOGLE_SCRIPT_URL, {
         method: 'POST',
-        body: JSON.stringify({
-            action: 'submitEvaluation',
-            data: evaluations
-        })
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: params.toString()
     })
     .then(response => response.json())
     .then(data => {
