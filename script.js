@@ -89,10 +89,82 @@ let sessionTimeout;
 
 // Logout function
 function logout() {
-    localStorage.removeItem('userBranch');
-    localStorage.removeItem('loginTime');
+    // Clear all data from localStorage
+    localStorage.clear();
+    
+    // Stop the session timer
     clearTimeout(sessionTimeout);
-    checkLoginState();
+    
+    // Reset login form and container visibility
+    document.getElementById('loginForm').style.display = 'flex';
+    document.querySelector('.container').style.display = 'none';
+    
+    // Clear login form inputs
+    document.getElementById('email').value = '';
+    document.getElementById('password').value = '';
+    
+    // Hide any error messages
+    const errorDiv = document.getElementById('loginError');
+    if (errorDiv) {
+        errorDiv.style.display = 'none';
+    }
+
+    // Reset all form containers to empty state
+    const resetElements = {
+        // Employee management
+        'employeesListView': '<div class="no-data">No employees data</div>',
+        'employeeForm': '',
+        
+        // Attendance
+        'employeesList': '<div class="no-data">No attendance data</div>',
+        
+        // Evaluation
+        'employeesEvaluationList': '<div class="no-data">No evaluation data</div>',
+        
+        // Penalty
+        'penaltyEmployeeSelect': '<option value="">Select employee</option>',
+        'penaltyReason': '',
+        'penaltyAmount': '',
+        
+        // Reports
+        'reportEmployeeSelect': '<option value="">Select employee</option>',
+        'reportType': '',
+        'reportResults': '',
+        
+        // Best Employee
+        'bestEmployeeData': '<div class="no-data">No best employee data</div>'
+    };
+
+    // Apply resets
+    Object.entries(resetElements).forEach(([id, content]) => {
+        const element = document.getElementById(id);
+        if (element) {
+            if (element.tagName === 'SELECT') {
+                element.innerHTML = content;
+            } else if (element.tagName === 'INPUT') {
+                element.value = '';
+            } else {
+                element.innerHTML = content;
+            }
+        }
+    });
+
+    // Reset all branch displays
+    document.querySelectorAll('.userBranchDisplay').forEach(element => {
+        element.textContent = '';
+    });
+
+    // Hide all forms
+    hideAllForms();
+
+    // Reset evaluation stars if they exist
+    document.querySelectorAll('.star-rating').forEach(container => {
+        container.setAttribute('data-rating', '0');
+        container.querySelectorAll('.star').forEach(star => {
+            star.classList.remove('active');
+            star.textContent = '☆';
+        });
+    });
 }
 
 // Reset session timer
@@ -205,11 +277,9 @@ function loadEmployeesForManagement(branch) {
                                         <td>${emp.phone}</td>
                                         <td>${emp.branch}</td>
                                         <td>
-                                            <button class="edit-btn" onclick="showEditForm('${emp.code}', '${emp.name}', '${emp.title}', '${emp.phone}', '${emp.branch}')">
-                                                <i class="fas fa-edit"></i> تعديل
-                                            </button>
+
                                             <button class="delete-btn" onclick="deleteEmployee('${emp.code}')">
-                                                <i class="fas fa-trash"></i> حذف
+                                                <i class="fas fa-trash"></i>
                                             </button>
                                         </td>
                                     </tr>
