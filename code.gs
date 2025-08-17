@@ -20,6 +20,9 @@ function doGet(e) {
         return getBestEmployee(e);
       case 'login':
         return handleLogin(e.parameter.email, e.parameter.password);
+      case 'getEmployeeReport':
+        return getEmployeeReport(e);
+      
       default:
         return ContentService.createTextOutput(JSON.stringify({
           success: false,
@@ -703,4 +706,153 @@ function checkPenalties(penaltiesData, employeeCode, startDate) {
 // دالة لحساب التقييم النهائي
 function calculateFinalScore(attendanceRate, evaluationRate, penaltyDeduction) {
   return Math.max(0, (attendanceRate * 0.4) + (evaluationRate * 0.6) - penaltyDeduction);
+}
+
+function getEmployeeReport(e) {
+  try {
+    console.log('Getting report for employee:', e.parameter.employeeId);
+    console.log('Report type:', e.parameter.reportType);
+    
+    const employeeId = e.parameter.employeeId;
+    const reportType = e.parameter.reportType;
+    const ss = SpreadsheetApp.getActive();
+    
+    switch(reportType) {
+      case 'attendance':
+        const attendanceSheet = ss.getSheetByName('Attendance');
+        const allData = attendanceSheet.getDataRange().getValues();
+        console.log('Total attendance records:', allData.length);
+        
+        // التحقق من وجود بيانات
+        if (allData.length <= 1) {
+          throw new Error('لا توجد سجلات حضور');
+        }
+
+        // استخراج سجلات الحضور للموظف المحدد
+        const employeeAttendance = allData.slice(1)  // تخطي صف العناوين
+          .filter(row => {
+            console.log('Checking row:', row, 'Employee ID:', row[1], 'Looking for:', employeeId);
+            return row[1].toString() === employeeId.toString();
+          })
+          .map(row => ({
+            date: formatDate(row[0]),
+            status: row[2]
+          }));
+
+        console.log('Found attendance records:', employeeAttendance.length);
+        
+        return ContentService.createTextOutput(JSON.stringify({
+          success: true,
+          data: employeeAttendance,
+          debug: {
+            totalRecords: allData.length,
+            employeeId: employeeId,
+            foundRecords: employeeAttendance.length
+          }
+        })).setMimeType(ContentService.MimeType.JSON);
+        
+      case 'evaluation':
+        const evaluationsSheet = ss.getSheetByName('Evaluations');
+        const allEvalData = evaluationsSheet.getDataRange().getValues();
+        console.log('Total evaluation records:', allEvalData.length);
+        
+        // التحقق من وجود بيانات
+        if (allEvalData.length <= 1) {
+          throw new Error('لا توجد سجلات تقييم');
+        }
+
+        // استخراج سجلات التقييم للموظف المحدد
+        const employeeEvaluations = allEvalData.slice(1)  // تخطي صف العناوين
+          .filter(row => {
+            console.log('Checking evaluation row:', row, 'Employee ID:', row[1], 'Looking for:', employeeId);
+            return row[1].toString() === employeeId.toString();
+          })
+          .map(row => ({
+            date: formatDate(row[0]),
+            cleanliness: Number(row[2]),
+            appearance: Number(row[3]),
+            teamwork: Number(row[4]),
+            punctuality: Number(row[5]),
+            average: Number(row[6])
+          }))
+          .sort((a, b) => new Date(b.date) - new Date(a.date)); // ترتيب حسب التاريخ تنازلياً
+
+        console.log('Found evaluation records:', employeeEvaluations.length);
+        
+        return ContentService.createTextOutput(JSON.stringify({
+          success: true,
+          data: employeeEvaluations,
+          debug: {
+            totalRecords: allEvalData.length,
+            employeeId: employeeId,
+            foundRecords: employeeEvaluations.length
+          }
+        })).setMimeType(ContentService.MimeType.JSON);
+        
+      case 'penalty':
+        const penaltiesSheet = ss.getSheetByName('Penalties');
+        const allPenaltyData = penaltiesSheet.getDataRange().getValues();
+        console.log('Total penalty records:', allPenaltyData.length);
+        
+        // التحقق من وجود بيانات
+        if (allPenaltyData.length <= 1) {
+          throw new Error('لا توجد سجلات جزاءات');
+        }
+
+        // استخراج سجلات الجزاءات للموظف المحدد
+        const employeePenalties = allPenaltyData.slice(1)  // تخطي صف العناوين
+          .filter(row => {
+            console.log('Checking penalty row:', row, 'Employee ID:', row[1], 'Looking for:', employeeId);
+            return row[1].toString() === employeeId.toString();
+          })
+          .map(row => ({
+            date: formatDate(row[0]),
+            reason: row[2],
+            amount: row[3]
+          }))
+          .sort((a, b) => new Date(b.date) - new Date(a.date)); // ترتيب حسب التاريخ تنازلياً
+
+        console.log('Found penalty records:', employeePenalties.length);
+        
+        return ContentService.createTextOutput(JSON.stringify({
+          success: true,
+          data: employeePenalties,
+          debug: {
+            totalRecords: allPenaltyData.length,
+            employeeId: employeeId,
+            foundRecords: employeePenalties.length
+          }
+        })).setMimeType(ContentService.MimeType.JSON);
+        
+      default:
+        throw new Error('نوع تقرير غير صالح');
+    }
+  } catch (error) {
+    console.error('Error in getEmployeeReport:', error);
+    return ContentService.createTextOutput(JSON.stringify({
+      success: false,
+      error: error.toString(),
+      debug: {
+        employeeId: e.parameter.employeeId,
+        reportType: e.parameter.reportType
+      }
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+// تحسين دالة تنسيق التاريخ
+function formatDate(date) {
+  try {
+    if (!(date instanceof Date)) {
+      date = new Date(date);
+    }
+    // التأكد من أن التاريخ صالح
+    if (isNaN(date.getTime())) {
+      throw new Error('Invalid date');
+    }
+    return Utilities.formatDate(date, Session.getScriptTimeZone(), "yyyy-MM-dd");
+  } catch (e) {
+    console.error('Error formatting date:', e);
+    return 'Invalid Date';
+  }
 }
