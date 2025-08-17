@@ -1,5 +1,5 @@
 // Google Apps Script URL
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxklBPSLXasEIf7Wd4wVaOxpY7kqQc7UNvaz4xe-ROnpZ1W2TgOJg07Baq_oRobppMRfw/exec';
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw22Ybolx9yFMK-p0-Gqfb8Ki22pyRre_xgo4uYxKNrO7zvDQbdbTaGOiOVuAJISeqZlg/exec';
 
 // Toggle password visibility
 function togglePassword() {
@@ -33,7 +33,7 @@ function checkLoginState() {
         // Load employee data for selected branch automatically
         loadEmployeesForManagement(loggedInBranch);
         loadEmployeesByBranch(loggedInBranch);
-        loadEmployeesForEvaluation(loggedInBranch);
+        loadEmployeesForEvaluation(logloggedInBranch);
         loadEmployeesForPenalty(loggedInBranch);
     } else {
         document.getElementById('loginForm').style.display = 'flex';
@@ -155,7 +155,7 @@ function initializeStarRatings() {
 function validateAttendanceSelection() {
     const selectedCount = document.querySelectorAll('input[type="radio"]:checked').length;
     if (selectedCount === 0) {
-        alert('الرجاء تحديد حالة الحضور لموظف واحد على الأقل');
+        alert('Please select attendance status for at least one employee');
         return false;
     }
     return true;
@@ -269,7 +269,7 @@ function loadEmployeesForEvaluation(branch) {
 
 function loadEmployeesForPenalty(branch) {
     if (!branch) {
-        document.getElementById('penaltyEmployeeSelect').innerHTML = '<option value="">اختر الموظف</option>';
+        document.getElementById('penaltyEmployeeSelect').innerHTML = '<option value="">Select employee</option>';
         return;
     }
 
@@ -277,7 +277,7 @@ function loadEmployeesForPenalty(branch) {
         .then(response => response.json())
         .then(data => {
             const select = document.getElementById('penaltyEmployeeSelect');
-            select.innerHTML = '<option value="">اختر الموظف</option>';
+            select.innerHTML = '<option value="">Select employee</option>';
             
             if (data.employees && data.employees.length > 0) {
                 data.employees.forEach(employee => {
@@ -338,6 +338,13 @@ function showBestEmployee() {
         return;
     }
     loadBestEmployee(branch);
+}
+
+function showEmployeeReport() {
+    hideAllForms();
+    document.getElementById('employeeReportForm').style.display = 'block';
+    const branch = localStorage.getItem('userBranch');
+    loadEmployeesForReport(branch);
 }
 
 function createEmployeeEvaluationCard(employee) {
@@ -477,7 +484,7 @@ function submitAllEvaluations() {
         saveButton.disabled = false;
 
         if (data.success) {
-            alert('Evaluations saved successfully');
+            alert('تم حفظ التقييمات بنجاح');
             loadEmployeesForEvaluation();
         } else {
             alert('Error saving evaluations');
@@ -607,12 +614,12 @@ function loadEmployeesByBranch(branch) {
                                     <span>Absent</span>
                                 </label>
                                 <label class="radio-option">
-                                    <input type="radio" name="attendance_${employee.code}" value="Leave">
-                                    <span>Leave</span>
+                                    <input type="radio" name="attendance_${employee.code}" value="vacation">
+                                    <span>Vacation</span>
                                 </label>
                                 <label class="radio-option">
-                                    <input type="radio" name="attendance_${employee.code}" value="Unauth Leave">
-                                    <span>Unauthorized Leave</span>
+                                    <input type="radio" name="attendance_${employee.code}" value="Leave a vacation">
+                                    <span>Leave a vacation</span>
                                 </label>
                             </div>
                         </div>
@@ -789,7 +796,7 @@ function submitPenalty() {
     const saveButton = form.querySelector('button');
 
     if (!employeeId || !reason || !deductionPeriod) {
-        alert('الرجاء ملء جميع الحقول');
+        alert('Please fill in all fields');
         return;
     }
 
@@ -830,11 +837,11 @@ function submitPenalty() {
         saveButton.disabled = false;
 
         if (data.success) {
-            alert('تم إضافة الجزاء بنجاح');
+            alert('Penalty added successfully');
             document.getElementById('penaltyReason').value = '';
             document.getElementById('penaltyAmount').value = '';
         } else {
-            alert('حدث خطأ أثناء إضافة الجزاء');
+            alert('Error adding penalty');
         }
     })
     .catch(error => {
@@ -852,12 +859,11 @@ function submitPenalty() {
 function loadBestEmployee(branch) {
     const bestEmployeeData = document.getElementById('bestEmployeeData');
     
-    // إظهار حالة التحميل
     bestEmployeeData.innerHTML = `
         <div class="loading-overlay">
             <div class="loading-container">
                 <div class="loading-circle"></div>
-                <div class="loading-text">جاري تحميل بيانات الموظف المثالي...</div>
+                <div class="loading-text">Loading best employee data...</div>
             </div>
         </div>
     `;
@@ -865,8 +871,6 @@ function loadBestEmployee(branch) {
     fetch(`${GOOGLE_SCRIPT_URL}?action=getBestEmployee&branch=${encodeURIComponent(branch)}`)
         .then(response => response.json())
         .then(data => {
-            console.log('Received data:', data); // للتحقق من البيانات المستلمة
-            
             if (data.success && data.employee) {
                 const attendanceRate = parseFloat(data.employee.attendanceRate).toFixed(2);
                 const evaluationRate = parseFloat(data.employee.evaluationRate).toFixed(2);
@@ -874,47 +878,70 @@ function loadBestEmployee(branch) {
 
                 bestEmployeeData.innerHTML = `
                     <div class="best-employee-card">
-                        <h3>الموظف المثالي لشهر ${new Date().toLocaleString('EG', { month: 'long' })}</h3>
+                        <h3>Best Employee for ${new Date().toLocaleString('en-US', { month: 'long' })}</h3>
                         <div class="employee-details">
-                            <p><strong>الاسم:</strong> ${data.employee.name}</p>
-                            <p><strong>الفرع:</strong> ${data.employee.branch}</p>
-                            <p><strong>المسمى الوظيفي:</strong> ${data.employee.title}</p>
+                            <div class="stat-group">
+                                <div class="stat-item">
+                                    <span class="stat-label">Name:</span>
+                                    <span class="stat-value">${data.employee.name}</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">Branch:</span>
+                                    <span class="stat-value">${data.employee.branch}</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">Position:</span>
+                                    <span class="stat-value">${data.employee.title}</span>
+                                </div>
+                            </div>
                         </div>
                         <div class="ratings-section">
-                            <h4>تفاصيل التقييم</h4>
-                            <div class="rating-item">
-                                <span>نسبة الحضور (40%):</span>
-                                <div class="progress-bar">
-                                    <div class="progress" style="width: ${attendanceRate}%"></div>
+                            <h4>Performance Details</h4>
+                            <div class="rating-items">
+                                <div class="rating-item">
+                                    <div class="rating-header">
+                                        <span class="rating-label">Attendance Rate (40%)</span>
+                                        <span class="rating-value">${attendanceRate}%</span>
+                                    </div>
+                                    <div class="progress-bar">
+                                        <div class="progress" style="width: ${attendanceRate}%"></div>
+                                    </div>
                                 </div>
-                                <span>${attendanceRate}%</span>
-                            </div>
-                            <div class="rating-item">
-                                <span>متوسط التقييم (60%):</span>
-                                <div class="progress-bar">
-                                    <div class="progress" style="width: ${evaluationRate}%"></div>
+                                <div class="rating-item">
+                                    <div class="rating-header">
+                                        <span class="rating-label">Evaluation Rate (60%)</span>
+                                        <span class="rating-value">${evaluationRate}%</span>
+                                    </div>
+                                    <div class="progress-bar">
+                                        <div class="progress" style="width: ${evaluationRate}%"></div>
+                                    </div>
                                 </div>
-                                <span>${evaluationRate}%</span>
-                            </div>
-                            ${data.employee.hasPenalty ? 
-                                `<div class="penalty-warning">
-                                    <i class="fas fa-exclamation-triangle"></i>
-                                    يوجد خصم بسبب الجزاءات المسجلة
-                                </div>` : ''}
-                            <div class="final-score">
-                                <strong>التقييم النهائي:</strong>
-                                <span>${finalScore}%</span>
+                                ${data.employee.hasPenalty ? `
+                                    <div class="penalty-warning">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                        Penalty deduction applied
+                                    </div>
+                                ` : ''}
+                                <div class="final-score">
+                                    <div class="rating-header">
+                                        <span class="rating-label">Final Score</span>
+                                        <span class="rating-value">${finalScore}%</span>
+                                    </div>
+                                    <div class="progress-bar">
+                                        <div class="progress" style="width: ${finalScore}%"></div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 `;
             } else {
-                bestEmployeeData.innerHTML = '<div class="no-data">لا توجد بيانات متاحة لهذا الشهر</div>';
+                bestEmployeeData.innerHTML = '<div class="no-data">No data available for this month</div>';
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            bestEmployeeData.innerHTML = '<div class="error-message">حدث خطأ في تحميل البيانات</div>';
+            bestEmployeeData.innerHTML = '<div class="error-message">Error loading data</div>';
         });
 }
 
@@ -1072,6 +1099,421 @@ async function deleteEmployee(code) {
             alert('حدث خطأ في النظام: ' + error.message);
         }
     }
+}
+
+// تحميل قائمة الموظفين للتقرير
+function loadEmployeesForReport(branch) {
+    if (!branch) return;
+
+    fetch(`${GOOGLE_SCRIPT_URL}?action=getEmployees&branch=${encodeURIComponent(branch)}`)
+        .then(response => response.json())
+        .then(data => {
+            const select = document.getElementById('reportEmployeeSelect');
+            select.innerHTML = '<option value="">Select employee</option>';
+            
+            if (data.employees && data.employees.length > 0) {
+                data.employees.forEach(employee => {
+                    const option = document.createElement('option');
+                    option.value = employee.code;
+                    option.textContent = `${employee.name} - ${employee.title}`;
+                    select.appendChild(option);
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('حدث خطأ في تحميل بيانات الموظفين');
+        });
+}
+
+// إنشاء التقرير
+async function generateReport() {
+    const employeeId = document.getElementById('reportEmployeeSelect').value;
+    const reportType = document.getElementById('reportType').value;
+    const resultsContainer = document.getElementById('reportResults');
+    
+    if (!employeeId || !reportType) {
+        alert('الرجاء اختيار الموظف ونوع التقرير');
+        return;
+    }
+
+    // إظهار حالة التحميل
+    resultsContainer.innerHTML = `
+        <div class="loading-overlay">
+            <div class="loading-container">
+                <div class="loading-circle"></div>
+                <div class="loading-text">جاري تحميل التقرير...</div>
+            </div>
+        </div>
+    `;
+
+    try {
+        const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=getEmployeeReport&employeeId=${employeeId}&reportType=${reportType}`);
+        const data = await response.json();
+
+        if (data.success) {
+            switch(reportType) {
+                case 'attendance':
+                    displayAttendanceReport(data.data);
+                    break;
+                case 'evaluation':
+                    displayEvaluationReport(data.data);
+                    break;
+                case 'penalty':
+                    displayPenaltyReport(data.data);
+                    break;
+            }
+        } else {
+            resultsContainer.innerHTML = `<div class="error-message">حدث خطأ في تحميل التقرير: ${data.error}</div>`;
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        resultsContainer.innerHTML = '<div class="error-message">حدث خطأ في تحميل التقرير</div>';
+    }
+}
+
+// عرض تقرير الحضور
+function displayAttendanceReport(data) {
+    const resultsContainer = document.getElementById('reportResults');
+    
+    if (!Array.isArray(data) || data.length === 0) {
+        resultsContainer.innerHTML = '<div class="no-data">No attendance records found for this employee</div>';
+        return;
+    }
+
+    const translateStatus = {
+        'Present': 'Present',
+        'Absent': 'Absent',
+        'vacation': 'vacation',
+        'Leave a vacation': 'Leave a vacation'
+    };
+
+    const monthlyData = data.reduce((acc, record) => {
+        const date = new Date(record.date);
+        const monthYear = date.toLocaleString('en-US', { month: 'long', year: 'numeric' });
+        if (!acc[monthYear]) {
+            acc[monthYear] = [];
+        }
+        acc[monthYear].push(record);
+        return acc;
+    }, {});
+
+    let html = '';
+    
+    Object.entries(monthlyData).forEach(([monthYear, records]) => {
+        const stats = calculateAttendanceStats(records);
+        
+        html += `
+            <div class="month-section">
+                <h3>${monthYear}</h3>
+                <div class="attendance-stats">
+                    <div class="stat-item">
+                        <span class="stat-label">Attendance Rate:</span>
+                        <span class="stat-value">${stats.presentPercentage}%</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Present Days:</span>
+                        <span class="stat-value">${stats.presentDays}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Absent Days:</span>
+                        <span class="stat-value">${stats.absentDays}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">vacation Days:</span>
+                        <span class="stat-value">${stats.leaveDays}</span>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="report-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Day</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${records.map(record => {
+                                const date = new Date(record.date);
+                                const status = translateStatus[record.status] || record.status;
+                                const statusClass = record.status.toLowerCase().replace(' ', '-');
+                                
+                                return `
+                                    <tr>
+                                        <td>${date.toLocaleDateString('en-US', { 
+                                            year: 'numeric', 
+                                            month: 'short', 
+                                            day: 'numeric'
+                                        })}</td>
+                                        <td>${date.toLocaleDateString('en-US', { weekday: 'long' })}</td>
+                                        <td class="status ${statusClass}">${status}</td>
+                                    </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        `;
+    });
+
+    resultsContainer.innerHTML = html;
+}
+
+// دالة لحساب إحصائيات الحضور
+function calculateAttendanceStats(data) {
+    const presentDays = data.filter(record => record.status === 'Present').length;
+    const absentDays = data.filter(record => record.status === 'Absent' || record.status === 'Unauth Leave').length;
+    const leaveDays = data.filter(record => record.status === 'vacation').length;
+    const totalDays = data.length;
+    
+    return {
+        presentDays,
+        absentDays,
+        leaveDays,
+        presentPercentage: totalDays > 0 ? ((presentDays / totalDays) * 100).toFixed(1) : '0.0'
+    };
+}
+
+// عرض تقرير التقييمات
+function displayEvaluationReport(data) {
+    const resultsContainer = document.getElementById('reportResults');
+    
+    if (!Array.isArray(data) || data.length === 0) {
+        resultsContainer.innerHTML = '<div class="no-data">No evaluation records found for this employee</div>';
+        return;
+    }
+
+    // Calculate monthly averages
+    const monthlyData = data.reduce((acc, record) => {
+        const date = new Date(record.date);
+        const monthYear = date.toLocaleString('en-US', { month: 'long', year: 'numeric' });
+        if (!acc[monthYear]) {
+            acc[monthYear] = [];
+        }
+        acc[monthYear].push(record);
+        return acc;
+    }, {});
+
+    let html = '';
+    
+    // Display data for each month
+    Object.entries(monthlyData).forEach(([monthYear, records]) => {
+        const monthlyAverages = calculateMonthlyAverages(records);
+        
+        html += `
+            <div class="month-section">
+                <h3>${monthYear}</h3>
+                <div class="evaluation-stats">
+                    <div class="stat-item">
+                        <span class="stat-label">Personal Hygiene:</span>
+                        <span class="stat-value">${monthlyAverages.cleanliness}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Appearance:</span>
+                        <span class="stat-value">${monthlyAverages.appearance}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Teamwork:</span>
+                        <span class="stat-value">${monthlyAverages.teamwork}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Punctuality:</span>
+                        <span class="stat-value">${monthlyAverages.punctuality}</span>
+                    </div>
+                    <div class="stat-item total">
+                        <span class="stat-label">Monthly Average:</span>
+                        <span class="stat-value">${monthlyAverages.total}</span>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="report-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Personal Hygiene</th>
+                                <th>Appearance</th>
+                                <th>Teamwork</th>
+                                <th>Punctuality</th>
+                                <th>Daily Average</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${records.map(record => {
+                                const date = new Date(record.date);
+                                const dailyAverage = ((
+                                    Number(record.cleanliness) +
+                                    Number(record.appearance) +
+                                    Number(record.teamwork) +
+                                    Number(record.punctuality)
+                                ) / 4).toFixed(2);
+                                
+                                return `
+                                    <tr>
+                                        <td>${date.toLocaleDateString('en-US', {
+                                            year: 'numeric',
+                                            month: 'short',
+                                            day: 'numeric'
+                                        })}</td>
+                                        <td>${record.cleanliness}</td>
+                                        <td>${record.appearance}</td>
+                                        <td>${record.teamwork}</td>
+                                        <td>${record.punctuality}</td>
+                                        <td>${dailyAverage}</td>
+                                    </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        `;
+    });
+
+    resultsContainer.innerHTML = html;
+}
+
+function calculateMonthlyAverages(records) {
+    const totals = records.reduce((acc, record) => {
+        acc.cleanliness += Number(record.cleanliness);
+        acc.appearance += Number(record.appearance);
+        acc.teamwork += Number(record.teamwork);
+        acc.punctuality += Number(record.punctuality);
+        return acc;
+    }, {
+        cleanliness: 0,
+        appearance: 0,
+        teamwork: 0,
+        punctuality: 0
+    });
+
+    const count = records.length;
+    const averages = {
+        cleanliness: (totals.cleanliness / count).toFixed(2),
+        appearance: (totals.appearance / count).toFixed(2),
+        teamwork: (totals.teamwork / count).toFixed(2),
+        punctuality: (totals.punctuality / count).toFixed(2)
+    };
+
+    averages.total = ((
+        Number(averages.cleanliness) +
+        Number(averages.appearance) +
+        Number(averages.teamwork) +
+        Number(averages.punctuality)
+    ) / 4).toFixed(2);
+
+    return averages;
+}
+
+// عرض تقرير الجزاءات
+function displayPenaltyReport(data) {
+    const resultsContainer = document.getElementById('reportResults');
+    
+    if (!Array.isArray(data) || data.length === 0) {
+        resultsContainer.innerHTML = '<div class="no-data">لا توجد سجلات جزاءات لهذا الموظف</div>';
+        return;
+    }
+
+    // تجميع البيانات حسب الشهر
+    const monthlyData = data.reduce((acc, record) => {
+        const date = new Date(record.date);
+        const monthYear = date.toLocaleString('en-US', { month: 'long', year: 'numeric' });
+        if (!acc[monthYear]) {
+            acc[monthYear] = [];
+        }
+        acc[monthYear].push(record);
+        return acc;
+    }, {});
+
+    let html = '';
+    
+    // عرض البيانات لكل شهر
+    Object.entries(monthlyData).forEach(([monthYear, records]) => {
+        const stats = calculatePenaltyStats(records);
+        
+        html += `
+            <div class="month-section">
+                <h3>${monthYear}</h3>
+                <div class="penalty-stats">
+                    <div class="stat-item">
+                        <span class="stat-label">Total Penalties:</span>
+                        <span class="stat-value">${stats.totalPenalties}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Total Deduction Days:</span>
+                        <span class="stat-value">${stats.totalDays}</span>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="report-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Reason</th>
+                                <th>Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${records.map(record => `
+                                <tr>
+                                    <td>${new Date(record.date).toLocaleDateString('EG')}</td>
+                                    <td>${record.reason}</td>
+                                    <td>${record.amount}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        `;
+    });
+
+    resultsContainer.innerHTML = html;
+}
+
+// دالة لحساب إحصائيات الجزاءات
+function calculatePenaltyStats(data) {
+    const totalPenalties = data.length;
+    
+    // حساب إجمالي أيام الخصم
+    const daysMapping = {
+        'ربع يوم': 0.25,
+        'نصف يوم': 0.5,
+        'يوم': 1,
+        'ثلاثة ايام': 3
+    };
+    
+    const totalDays = data.reduce((sum, record) => {
+        return sum + (daysMapping[record.amount] || 0);
+    }, 0);
+
+    return {
+        totalPenalties,
+        totalDays: totalDays.toFixed(2)
+    };
+}
+
+// دالة لحساب إحصائيات الجزاءات
+function calculatePenaltyStats(data) {
+    const totalPenalties = data.length;
+    
+    // حساب إجمالي أيام الخصم
+    const daysMapping = {
+        'ربع يوم': 0.25,
+        'نصف يوم': 0.5,
+        'يوم': 1,
+        'ثلاثة ايام': 3
+    };
+    
+    const totalDays = data.reduce((sum, record) => {
+        return sum + (daysMapping[record.amount] || 0);
+    }, 0);
+
+    return {
+        totalPenalties,
+        totalDays: totalDays.toFixed(2)
+    };
 }
 
 
