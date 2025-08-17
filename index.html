@@ -69,6 +69,10 @@
                 <i class="fas fa-trophy"></i>
                 Best employee report
             </button>
+            <button class="action-button" onclick="showEmployeeReport()">
+                <i class="fas fa-file-alt"></i>
+                Employee reports
+            </button>
         </div>
 
         <!-- Employee Add Form -->
@@ -169,18 +173,17 @@
             </select>
             <select id="penaltyReason" required style="text-align: left;">
                 <option value="">Select Penalty Reason</option>
-                <option value="غياب بدون اذن">غياب بدون اذن</option>
-                <option value="بنطلون مخالف">بنطلون مخالف</option>
-                <option value="عدم الالتزام بالتعليمات">عدم الالتزام بالتعليمات</option>
-                <option value="التحدث باسلوب غير لائق">التحدث باسلوب غير لائق</option>
-
+                <option value="Unauthorized Absence">Unauthorized Absence</option>
+                <option value="Dress Code Violation">Dress Code Violation</option>
+                <option value="Not Following Instructions">Not Following Instructions</option>
+                <option value="Inappropriate Behavior">Inappropriate Behavior</option>
             </select>
             <select id="penaltyAmount" required style="text-align: left;">
                 <option value="">Select Deduction Amount</option>
                 <option value="ربع يوم">ربع يوم</option>
                 <option value="نصف يوم">نصف يوم</option>
-                <option value="يوم">يوم</option>
-                <option value="ثلاثة ايام">ثلاثة ايام</option>
+                <option value="يوم كامل">يوم كامل</option>
+                <option value="ثلاثة أيام">ثلاثة أيام</option>
             </select>
             <button onclick="submitPenalty()">Save Penalty</button>
         </div>
@@ -190,7 +193,37 @@
             <h2>Best Employee Report</h2>
             <div id="bestEmployeeData"></div>
         </div>
+
+        <!-- Employee Report Form -->
+        <div id="employeeReportForm" class="form-container" style="display: none;">
+            <h2>Employee Reports</h2>
+            <div class="form-group">
+                <h3 class="branch-display">Branch: <span class="userBranchDisplay"></span></h3>
+            </div>
+            
+            <div class="report-controls">
+                <select id="reportEmployeeSelect" required>
+                    <option value="">Select Employee</option>
+                </select>
+                
+                <select id="reportType" required>
+                    <option value="">Select Report Type</option>
+                    <option value="attendance">Attendance Record</option>
+                    <option value="evaluation">Employee Evaluations</option>
+                    <option value="penalty">Penalties</option>
+                </select>
+                
+                <button onclick="generateReport()" class="generate-report-btn">
+                    Generate Report
+                </button>
+            </div>
+            
+            <div id="reportResults" class="report-results">
+                <!-- Results will appear here -->
+            </div>
+        </div>
     </div>
     <script src="script.js"></script>
 </body>
+</html>
 </html>
