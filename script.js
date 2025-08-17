@@ -1026,10 +1026,10 @@ document.addEventListener('DOMContentLoaded', function() {
         toggleButton.addEventListener('click', function() {
             if (employeeForm.style.display === 'none') {
                 employeeForm.style.display = 'block';
-                toggleButton.textContent = 'إخفاء نموذج الإضافة';
+                toggleButton.textContent = 'Cancel';
             } else {
                 employeeForm.style.display = 'none';
-                toggleButton.textContent = 'إضافة موظف جديد';
+                toggleButton.textContent = 'Add New Employee';
             }
         });
     }
