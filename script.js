@@ -1200,10 +1200,11 @@ function loadEmployeesForReport(branch) {
 async function generateReport() {
     const employeeId = document.getElementById('reportEmployeeSelect').value;
     const reportType = document.getElementById('reportType').value;
+    const reportMonth = document.getElementById('reportMonth').value; // Get selected month
     const resultsContainer = document.getElementById('reportResults');
     
-    if (!employeeId || !reportType) {
-        alert('الرجاء اختيار الموظف ونوع التقرير');
+    if (!employeeId || !reportType || !reportMonth) {
+        alert('Please select employee, report type and month');
         return;
     }
 
@@ -1218,36 +1219,47 @@ async function generateReport() {
     `;
 
     try {
-        const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=getEmployeeReport&employeeId=${employeeId}&reportType=${reportType}`);
+        const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=getEmployeeReport&employeeId=${employeeId}&reportType=${reportType}&month=${reportMonth}`);
         const data = await response.json();
 
         if (data.success) {
+            // Filter data for selected month only
+            const selectedDate = new Date(reportMonth);
+            const filteredData = data.data.filter(record => {
+                const recordDate = new Date(record.date);
+                return recordDate.getMonth() === selectedDate.getMonth() && 
+                       recordDate.getFullYear() === selectedDate.getFullYear();
+            });
+
+            // Display filtered data
             switch(reportType) {
                 case 'attendance':
-                    displayAttendanceReport(data.data);
+                    displayAttendanceReport(filteredData);
                     break;
                 case 'evaluation':
-                    displayEvaluationReport(data.data);
+                    displayEvaluationReport(filteredData);
                     break;
                 case 'penalty':
-                    displayPenaltyReport(data.data);
+                    displayPenaltyReport(filteredData);
                     break;
             }
         } else {
-            resultsContainer.innerHTML = `<div class="error-message">حدث خطأ في تحميل التقرير: ${data.error}</div>`;
+            resultsContainer.innerHTML = `<div class="error-message">Error loading report: ${data.error}</div>`;
         }
     } catch (error) {
         console.error('Error:', error);
-        resultsContainer.innerHTML = '<div class="error-message">حدث خطأ في تحميل التقرير</div>';
+        resultsContainer.innerHTML = '<div class="error-message">Error loading report</div>';
     }
 }
 
-// عرض تقرير الحضور
+// Update display functions to show month in header
 function displayAttendanceReport(data) {
     const resultsContainer = document.getElementById('reportResults');
+    const selectedMonth = document.getElementById('reportMonth').value;
+    const monthDisplay = new Date(selectedMonth).toLocaleString('en-US', { month: 'long', year: 'numeric' });
     
     if (!Array.isArray(data) || data.length === 0) {
-        resultsContainer.innerHTML = '<div class="no-data">No attendance records found for this employee</div>';
+        resultsContainer.innerHTML = `<div class="no-data">No attendance records found for ${monthDisplay}</div>`;
         return;
     }
 
@@ -1349,9 +1361,11 @@ function calculateAttendanceStats(data) {
 // عرض تقرير التقييمات
 function displayEvaluationReport(data) {
     const resultsContainer = document.getElementById('reportResults');
+    const selectedMonth = document.getElementById('reportMonth').value;
+    const monthDisplay = new Date(selectedMonth).toLocaleString('en-US', { month: 'long', year: 'numeric' });
     
     if (!Array.isArray(data) || data.length === 0) {
-        resultsContainer.innerHTML = '<div class="no-data">No evaluation records found for this employee</div>';
+        resultsContainer.innerHTML = `<div class="no-data">No evaluation records found for ${monthDisplay}</div>`;
         return;
     }
 
@@ -1479,9 +1493,11 @@ function calculateMonthlyAverages(records) {
 // عرض تقرير الجزاءات
 function displayPenaltyReport(data) {
     const resultsContainer = document.getElementById('reportResults');
+    const selectedMonth = document.getElementById('reportMonth').value;
+    const monthDisplay = new Date(selectedMonth).toLocaleString('en-US', { month: 'long', year: 'numeric' });
     
     if (!Array.isArray(data) || data.length === 0) {
-        resultsContainer.innerHTML = '<div class="no-data">لا توجد سجلات جزاءات لهذا الموظف</div>';
+        resultsContainer.innerHTML = `<div class="no-data">No penalty records found for ${monthDisplay}</div>`;
         return;
     }
 
