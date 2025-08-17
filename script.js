@@ -32,7 +32,7 @@ function checkLoginState() {
         
         // Load employee data for selected branch automatically
         loadEmployeesForManagement(loggedInBranch);
-        loadEmployeesByBranch(loggedInBranch);
+        loadEmployeesByBranch(logloggedInBranch);
         loadEmployeesForEvaluation(logloggedInBranch);
         loadEmployeesForPenalty(loggedInBranch);
     } else {
@@ -374,6 +374,10 @@ function showAddEmployee() {
     hideAllForms();
     document.getElementById('addEmployeeForm').style.display = 'block';
     const branch = localStorage.getItem('userBranch');
+    
+    // Set the branch value in the form
+    document.getElementById('empBranch').value = branch;
+    
     loadEmployeesForManagement(branch);
 }
 
