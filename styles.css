@@ -434,7 +434,7 @@ body {
 }
 
 .toggle-form-btn {
-    background-color: #4CAF50;
+    background-color: #2980b9;
     color: white;
     padding: 10px 20px;
     border: none;
@@ -446,7 +446,7 @@ body {
 }
 
 .toggle-form-btn:hover {
-    background-color: #45a049;
+    background-color: #00aeff;
 }
 
 #employeesListView {
@@ -487,7 +487,7 @@ h1 {
 button {
     padding: 15px 25px;
     font-size: 16px;
-    background-color: #4CAF50;
+    background-color: #2980b9;
     color: white;
     border: none;
     border-radius: 5px;
@@ -496,7 +496,7 @@ button {
 }
 
 button:hover {
-    background-color: #45a049;
+    background-color: #00aeff;
 }
 
 .form-container {
@@ -609,13 +609,13 @@ input, select, textarea {
 .save-all-btn {
     width: 100%;
     margin-top: 20px;
-    background-color: #28a745;
+    background-color: #2980b9;
     font-size: 16px;
     padding: 12px;
 }
 
 .save-all-btn:hover {
-    background-color: #218838;
+    background-color: #00aeff;
 }
 
 .loading {
@@ -714,19 +714,127 @@ input, select, textarea {
 .save-attendance-btn {
     width: 100%;
     margin-top: 20px;
-    background-color: #28a745;
+    background-color: #2980b9;
     font-size: 16px;
     padding: 12px;
 }
 
 .save-attendance-btn:hover {
-    background-color: #218838;
+    background-color: #00aeff;
 }
 
 #bestEmployeeData {
     padding: 20px;
     background-color: #f9f9f9;
     border-radius: 4px;
+}
+
+/* Best Employee Report Styles */
+.best-employee-card {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.best-employee-card h3 {
+    color: #2c3e50;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #eee;
+    font-size: 1.5rem;
+}
+
+.employee-details {
+    margin-bottom: 25px;
+}
+
+.stat-group {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin: 15px 0;
+}
+
+.ratings-section h4 {
+    color: #34495e;
+    margin-bottom: 15px;
+    font-size: 1.2rem;
+}
+
+.rating-items {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.rating-item {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+}
+
+.rating-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.rating-label {
+    color: #2c3e50;
+    font-weight: 500;
+}
+
+.rating-value {
+    color: #2196F3;
+    font-weight: bold;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 8px;
+    background: #e9ecef;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress {
+    height: 100%;
+    background: linear-gradient(90deg, #3498db, #2980b9);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+.penalty-warning {
+    background: #fff3cd;
+    color: #856404;
+    padding: 12px 15px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 10px 0;
+}
+
+.penalty-warning i {
+    color: #f39c12;
+}
+
+.final-score {
+    margin-top: 10px;
+    background: #e3f2fd;
+    padding: 15px;
+    border-radius: 8px;
+}
+
+.final-score .progress {
+    background: linear-gradient(90deg, #2ecc71, #27ae60);
+}
+
+.final-score .rating-value {
+    color: #27ae60;
+    font-size: 1.1rem;
 }
 
 @media (max-width: 768px) {
@@ -891,16 +999,16 @@ input, select, textarea {
 }
 
 /* Status-specific styles */
-.radio-option input[value="حضر"]:checked + span {
+.radio-option input[value="Present"]:checked + span {
     color: #27ae60;
 }
 
-.radio-option input[value="غياب"]:checked + span {
+.radio-option input[value="Absent"]:checked + span {
     color: #e74c3c;
 }
 
-.radio-option input[value="اجازة"]:checked + span,
-.radio-option input[value="اذن اجازة"]:checked + span {
+.radio-option input[value="vacation"]:checked + span,
+.radio-option input[value="Leave a vacation"]:checked + span {
     color: #f39c12;
 }
 
@@ -942,7 +1050,7 @@ input, select, textarea {
 .save-btn {
     width: 100%;
     padding: 12px;
-    background: #28a745;
+    background: #2980b9;
     color: white;
     border: none;
     border-radius: 4px;
@@ -952,13 +1060,249 @@ input, select, textarea {
 }
 
 .save-btn:hover {
-    background: #218838;
+    background: #00aeff;
 }
 
 .form-buttons {
     display: flex;
     justify-content: space-between;
     margin-top: 20px;
+}
+
+.report-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    background: white;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.report-table th,
+.report-table td {
+    padding: 12px 15px;
+    text-align: left;
+    border: 1px solid #ddd;
+}
+
+.report-table th {
+    background-color: #f8f9fa;
+    font-weight: bold;
+    color: #333;
+}
+
+.status-present {
+    background-color: #e8f5e9;
+}
+
+.status-absent {
+    background-color: #ffebee;
+}
+
+.status-leave {
+    background-color: #fff3e0;
+}
+
+.status-unauth-leave {
+    background-color: #fce4ec;
+}
+
+.attendance-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-top: 20px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.stat-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    background: white;
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    text-align: left;
+}
+
+.stat-label {
+    color: #666;
+    font-weight: 500;
+}
+
+.stat-value {
+    font-weight: bold;
+    color: #2196F3;
+}
+
+.report-summary {
+    margin: 15px 0;
+    padding: 10px;
+    background: #e3f2fd;
+    border-radius: 4px;
+    color: #1976d2;
+}
+
+/* Penalty Report Styles */
+.penalty-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin: 15px 0;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.penalty-stats .stat-item {
+    background: white;
+    padding: 15px;
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.penalty-stats .stat-label {
+    color: #666;
+    font-weight: 500;
+}
+
+.penalty-stats .stat-value {
+    font-weight: bold;
+    color: #dc3545;
+}
+
+.month-section {
+    margin-bottom: 30px;
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.month-section h3 {
+    color: #2c3e50;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #eee;
+}
+
+.report-container {
+    direction: ltr;
+    text-align: left;
+}
+
+.form-container {
+    direction: ltr;
+    text-align: left;
+}
+
+.form-group label {
+    text-align: left;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.report-table th,
+.report-table td {
+    text-align: left;
+}
+
+.stat-item {
+    text-align: left;
+}
+
+.month-section h3,
+.evaluation-summary h3,
+.evaluations-details h3 {
+    text-align: left;
+}
+
+select, input {
+    text-align: left;
+    direction: ltr;
+}
+
+.employee-card,
+.evaluation-card,
+.penalty-card {
+    text-align: left;
+}
+
+/* Attendance Table Styles */
+.status {
+    font-weight: 500;
+    padding: 6px 12px;
+    border-radius: 4px;
+    text-align: center;
+}
+
+.status.present {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+}
+
+.status.absent {
+    background-color: #ffebee;
+    color: #c62828;
+}
+
+.status.leave {
+    background-color: #fff3e0;
+    color: #ef6c00;
+}
+
+.status.unauth-leave {
+    background-color: #fce4ec;
+    color: #c2185b;
+}
+
+.attendance-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin: 15px 0;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.month-section .report-table {
+    margin-top: 20px;
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: white;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.month-section .report-table th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+    color: #2c3e50;
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 2px solid #eee;
+}
+
+.month-section .report-table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid #eee;
+    color: #333;
+}
+
+.month-section .report-table tr:last-child td {
+    border-bottom: none;
+}
+
+.month-section .report-table tr:hover td {
+    background-color: #f5f9ff;
 }
 
 
