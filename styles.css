@@ -573,8 +573,6 @@ input, select, textarea {
 
 .employees-evaluation-list {
     margin: 20px 0;
-    max-height: 600px;
-    overflow-y: auto;
 }
 
 .employee-evaluation-card {
@@ -583,6 +581,7 @@ input, select, textarea {
     padding: 20px;
     margin-bottom: 20px;
     box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+    transition: transform 0.2s ease;
 }
 
 .employee-info {
@@ -687,20 +686,12 @@ input, select, textarea {
 @media (max-width: 768px) {
     .evaluation-criteria {
         grid-template-columns: 1fr;
+        gap: 15px;
     }
 
-    .criteria-item {
+    .employee-evaluation-card {
         padding: 15px;
-    }
-
-    .star {
-        font-size: 24px;
-        padding: 3px;
-    }
-
-    .criteria-item label {
-        font-size: 14px;
-        margin-bottom: 8px;
+        margin-bottom: 15px;
     }
 }
 .employee-info p {
@@ -1331,6 +1322,8 @@ select, input {
     border-bottom: 1px solid #eee;
     color: #333;
 }
+
+
 
 .month-section .report-table tr:last-child td {
     border-bottom: none;
