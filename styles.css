@@ -925,33 +925,38 @@ input, select, textarea {
 .employees-table th:nth-child(1), /* Employee Code */
 .employees-table td:nth-child(1) {
     width: 100px;
+    text-align: center;
 }
 
 .employees-table th:nth-child(2), /* Employee Name */
 .employees-table td:nth-child(2) {
     width: auto;
     min-width: 150px;
+    text-align: center;
 }
 
 .employees-table th:nth-child(3), /* Job Title */
 .employees-table td:nth-child(3) {
     width: auto;
-    min-width: 120px;
+    min-width: 100px;
+    text-align: center;
 }
 
 .employees-table th:nth-child(4), /* Phone */
 .employees-table td:nth-child(4) {
     width: 120px;
+    text-align: center;
 }
 
 .employees-table th:nth-child(5), /* Branch */
 .employees-table td:nth-child(5) {
     width: 100px;
+    text-align: center;
 }
 
 .employees-table th:nth-child(6), /* Actions */
 .employees-table td:nth-child(6) {
-    width: 100px;
+    width: 90px;
     text-align: center;
 }
 
