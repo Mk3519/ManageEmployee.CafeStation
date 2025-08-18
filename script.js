@@ -30,10 +30,13 @@ function checkLoginState() {
         });
         document.getElementById('userBranchDisplay').textContent = loggedInBranch;
         
+        // Automatically show Add Employee page after login
+        showAddEmployee();
+        
         // Load employee data for selected branch automatically
         loadEmployeesForManagement(loggedInBranch);
-        loadEmployeesByBranch(logloggedInBranch);
-        loadEmployeesForEvaluation(logloggedInBranch);
+        loadEmployeesByBranch(loggedInBranch);
+        loadEmployeesForEvaluation(loggedInBranch);
         loadEmployeesForPenalty(loggedInBranch);
     } else {
         document.getElementById('loginForm').style.display = 'flex';
