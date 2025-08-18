@@ -30,13 +30,10 @@ function checkLoginState() {
         });
         document.getElementById('userBranchDisplay').textContent = loggedInBranch;
         
-        // Automatically show Add Employee page after login
-        showAddEmployee();
-        
         // Load employee data for selected branch automatically
         loadEmployeesForManagement(loggedInBranch);
-        loadEmployeesByBranch(loggedInBranch);
-        loadEmployeesForEvaluation(loggedInBranch);
+        loadEmployeesByBranch(logloggedInBranch);
+        loadEmployeesForEvaluation(logloggedInBranch);
         loadEmployeesForPenalty(loggedInBranch);
     } else {
         document.getElementById('loginForm').style.display = 'flex';
@@ -263,10 +260,10 @@ function loadEmployeesForManagement(branch) {
                         <table class="employees-table">
                             <thead>
                                 <tr>
-                                    <th>Employee Code</th>
+                                    <th>Code</th>
                                     <th>Employee Name</th>
                                     <th>Job Title</th>
-                                    <th>Phone Number</th>
+                                    <th>Phone</th>
                                     <th>Branch</th>
                                     <th>Actions</th>
                                 </tr>
@@ -1061,98 +1058,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// وظائف تعديل وحذف الموظفين
-function showEditForm(code, name, title, phone, branch) {
-    // إزالة أي نموذج موجود مسبقاً
-    const existingForm = document.querySelector('.edit-form-overlay');
-    if (existingForm) {
-        existingForm.remove();
-    }
-
-    // إنشاء النموذج
-    const editForm = document.createElement('div');
-    editForm.className = 'edit-form-overlay';
-    editForm.innerHTML = `
-        <div class="edit-form">
-            <h2>تعديل بيانات الموظف</h2>
-            <form id="editEmployeeForm">
-                <div class="form-group">
-                    <label for="editEmpCode">كود الموظف</label>
-                    <input type="text" id="editEmpCode" value="${code}" readonly>
-                </div>
-                <div class="form-group">
-                    <label for="editEmpName">اسم الموظف</label>
-                    <input type="text" id="editEmpName" value="${name}" required>
-                </div>
-                <div class="form-group">
-                    <label for="editEmpTitle">المسمى الوظيفي</label>
-                    <input type="text" id="editEmpTitle" value="${title}" required>
-                </div>
-                <div class="form-group">
-                    <label for="editEmpPhone">رقم الهاتف</label>
-                    <input type="text" id="editEmpPhone" value="${phone}" required>
-                </div>
-                <div class="form-group">
-                    <label for="editEmpBranch">الفرع</label>
-                    <input type="text" id="editEmpBranch" value="${branch}" readonly>
-                </div>
-                <div class="form-actions">
-                    <button type="submit" class="save-btn">حفظ التغييرات</button>
-                    <button type="button" class="cancel-btn" onclick="closeEditForm()">إلغاء</button>
-                </div>
-            </form>
-        </div>
-    `;
-    
-    document.body.appendChild(editForm);
-
-    // إضافة مستمع الحدث للنموذج
-    const form = document.getElementById('editEmployeeForm');
-    form.onsubmit = async function(e) {
-        e.preventDefault();
-        
-        const saveBtn = this.querySelector('.save-btn');
-        saveBtn.disabled = true;
-        saveBtn.textContent = 'جاري الحفظ...';
-
-        try {
-            const employeeData = {
-                code: this.querySelector('#editEmpCode').value,
-                name: this.querySelector('#editEmpName').value,
-                title: this.querySelector('#editEmpTitle').value,
-                phone: this.querySelector('#editEmpPhone').value,
-                branch: this.querySelector('#editEmpBranch').value
-            };
-
-            const params = new URLSearchParams();
-            params.append('action', 'updateEmployee');
-            params.append('data', JSON.stringify(employeeData));
-
-            const response = await fetch(GOOGLE_SCRIPT_URL, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: params.toString()
-            });
-
-            alert('تم تحديث بيانات الموظف بنجاح');
-            closeEditForm();
-        } catch (error) {
-            console.error('Error updating employee:', error);
-            alert('حدث خطأ أثناء تحديث بيانات الموظف');
-        } finally {
-            saveBtn.disabled = false;
-            saveBtn.textContent = 'حفظ التغييرات';
-        }
-    };
-}
-function closeEditForm() {
-    const overlay = document.querySelector('.edit-form-overlay');
-    if (overlay) {
-        overlay.remove();
-    }
-}
 
 async function deleteEmployee(code) {
     if (confirm('هل أنت متأكد من حذف هذا الموظف؟')) {
