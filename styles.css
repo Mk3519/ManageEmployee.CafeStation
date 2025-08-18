@@ -440,9 +440,11 @@ body {
 }
 
 .employees-table th {
+    position: sticky;
+    top: 0;
     background-color: #f8f9fa;
-    font-weight: bold;
-    color: #333;
+    z-index: 10;
+    font-weight: 600;
 }
 
 .employees-table tr:hover {
@@ -892,75 +894,99 @@ input, select, textarea {
 }
 
 .table-container {
-    margin: 20px 0;
+    width: 100%;
     overflow-x: auto;
+    margin: 20px 0;
+    direction: ltr;
     background: white;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    -webkit-overflow-scrolling: touch;
 }
 
 .employees-table {
     width: 100%;
     border-collapse: collapse;
     margin: 0;
+    direction: ltr;
+    table-layout: auto; /* تغيير من fixed إلى auto */
 }
 
 .employees-table th,
 .employees-table td {
-    padding: 12px 15px;
-    text-align: right;
+    padding: 8px 12px;
+    text-align: left;
     border-bottom: 1px solid #eee;
+    white-space: normal; /* تغيير من nowrap إلى normal */
+    min-width: 80px; /* حد أدنى لعرض العمود */
+    max-width: 200px; /* حد أقصى لعرض العمود */
 }
 
-.employees-table th {
-    background-color: #f8f9fa;
-    font-weight: bold;
-    color: #2c3e50;
-    white-space: nowrap;
-    position: sticky;
-    top: 0;
+.employees-table th:nth-child(1), /* Employee Code */
+.employees-table td:nth-child(1) {
+    width: 100px;
 }
 
-.employees-table tbody tr:hover {
-    background-color: #f5f5f5;
+.employees-table th:nth-child(2), /* Employee Name */
+.employees-table td:nth-child(2) {
+    width: auto;
+    min-width: 150px;
 }
 
-.employees-table td button {
-    padding: 6px 12px;
-    margin: 0 4px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 14px;
-    transition: all 0.2s ease;
+.employees-table th:nth-child(3), /* Job Title */
+.employees-table td:nth-child(3) {
+    width: auto;
+    min-width: 120px;
 }
 
-.employees-table td .edit-btn {
-    background-color: #3498db;
-    color: white;
+.employees-table th:nth-child(4), /* Phone */
+.employees-table td:nth-child(4) {
+    width: 120px;
 }
 
-.employees-table td .edit-btn:hover {
-    background-color: #2980b9;
+.employees-table th:nth-child(5), /* Branch */
+.employees-table td:nth-child(5) {
+    width: 100px;
 }
 
-.employees-table td .delete-btn {
-    background-color: #e74c3c;
-    color: white;
+.employees-table th:nth-child(6), /* Actions */
+.employees-table td:nth-child(6) {
+    width: 100px;
+    text-align: center;
 }
 
-.employees-table td .delete-btn:hover {
-    background-color: #c0392b;
+/* تحسينات للموبايل */
+@media (max-width: 768px) {
+    .table-container {
+        margin: 10px -15px;
+        border-radius: 0;
+    }
+
+    .employees-table th,
+    .employees-table td {
+        padding: 8px;
+        font-size: 12px;
+        min-width: 60px; /* تقليل الحد الأدنى في الموبايل */
+    }
+
+    .employees-table td button {
+        padding: 4px 8px;
+        font-size: 11px;
+    }
+
+    /* إضافة مؤشر للتمرير */
+    .table-container::after {
+        content: '';
+        position: absolute;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        width: 5px;
+        background: rgba(0,0,0,0.1);
+        border-radius: 0 8px 8px 0;
+    }
 }
 
-.employee-card {
-    background: #ffffff;
-    border-radius: 12px;
-    padding: 20px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    border: 1px solid #e0e0e0;
-    transition: transform 0.2s, box-shadow 0.2s;
-}
 
 .employee-card:hover {
     transform: translateY(-2px);
