@@ -178,18 +178,19 @@ function getEmployeesByBranch(branch) {
     console.log('Branch received:', branch);
     console.log('Total rows:', data.length);
 
+    // إذا كان الاختيار "All Branches" نعيد جميع الموظفين
     const employees = data.slice(1)
       .filter(row => {
         console.log('Checking row:', row);
         console.log('Branch in row:', row[4]);
-        return row[4] === branch;
+        return branch === 'All Branches' ? true : row[4] === branch;
       })
       .map(row => ({
         code: row[0],
         name: row[1],
         title: row[2],
-        phone: row[3],    // إضافة رقم الهاتف
-        branch: row[4]    // إضافة اسم الفرع
+        phone: row[3],
+        branch: row[4]
       }));
     
     console.log('Filtered employees:', employees);
