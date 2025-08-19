@@ -365,6 +365,119 @@ h1 {
     padding: 20px;
 }
 
+/* Message Box Styles */
+.message-box {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 30px;
+    border-radius: 12px;
+    min-width: 400px;
+    max-width: 90%;
+    z-index: 2000;
+    text-align: center;
+    background: white;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    animation: slideIn 0.3s ease-out;
+    border: 2px solid #3498db;
+}
+
+.message-box.success {
+    border-color: #3498db;
+}
+
+.message-box.success::before {
+    content: '✓';
+    display: block;
+    font-size: 48px;
+    color: #3498db;
+    margin-bottom: 20px;
+}
+
+.message-box.error {
+    border-color: #e74c3c;
+}
+
+.message-box.error::before {
+    content: '✕';
+    display: block;
+    font-size: 48px;
+    color: #e74c3c;
+    margin-bottom: 20px;
+}
+
+.message-box .message-content {
+    margin-bottom: 25px;
+    font-size: 20px;
+    color: #2c3e50;
+    font-weight: 500;
+}
+
+.message-box .close-btn {
+    background: #3498db;
+    color: white;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    min-width: 120px;
+}
+
+.message-box .close-btn:hover {
+    background: #2980b9;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+}
+
+.message-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 1999;
+    backdrop-filter: blur(4px);
+}
+
+@keyframes slideIn {
+    from {
+        transform: translate(-50%, -60%);
+        opacity: 0;
+    }
+    to {
+        transform: translate(-50%, -50%);
+        opacity: 1;
+    }
+}
+
+/* Responsive message box */
+@media (max-width: 480px) {
+    .message-box {
+        min-width: 90%;
+        padding: 25px;
+    }
+    
+    .message-box .message-content {
+        font-size: 18px;
+    }
+
+    .message-box::before {
+        font-size: 42px;
+    }
+
+    .message-box .close-btn {
+        width: 100%;
+        padding: 12px;
+    }
+}
+
 .card-actions {
     display: flex;
     gap: 10px;
@@ -1362,6 +1475,82 @@ select, input {
 
 .month-section .report-table tr:hover td {
     background-color: #f5f9ff;
+}
+
+.branch-selection {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+#branchSelector {
+    margin-right: 15px;
+}
+
+#branchSelect {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    min-width: 200px;
+    background-color: white;
+    cursor: pointer;
+}
+
+#branchSelect:hover {
+    border-color: #3498db;
+}
+
+#branchSelect:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+}
+
+#employeeForm {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    margin-top: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+#employeeForm input {
+    margin-bottom: 15px;
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+#employeeForm button {
+    background-color: #2980b9;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    width: 100%;
+}
+
+#employeeForm button:hover {
+    background-color: #3498db;
+}
+
+.toggle-form-btn {
+    margin: 20px 0;
+    background-color: #2980b9;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s;
+}
+
+.toggle-form-btn:hover {
+    background-color: #3498db;
 }
 
 
