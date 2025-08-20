@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <!-- Login Section -->
     <div id="loginForm" class="login-container">
         <div class="login-box">
             <img src="images/logo.png" alt="CafeStation Logo" class="login-logo">
@@ -34,34 +35,40 @@
         </div>
     </div>
 
+    <!-- Main Container -->
     <div class="container" style="display: none;">
+        <!-- Header Section -->
         <div class="header">
-            <div class="logo-and-title">
-                <img src="images/logo.png" alt="CafeStation Logo" class="company-logo">
-                <div class="header-text">
-                    <h2 class="company-name">Cafe Station</h2>
-                    <div class="branch-selection">
-                        <!-- إضافة القائمة المنسدلة للفروع -->
-                        <div id="branchSelector" style="display: none;">
-                            <select id="branchSelect" onchange="handleBranchChange(this.value)">
-                                <option value="">Select a Branch</option>
-                               
-                                <option value="Madinaty">Madinaty</option>
-                                <option value="Rehab">Rehab</option>
-                                <option value="Nasr City">Nasr City</option>
-                                <option value="Tagamo3">Tagamo3</option>
-                                <option value="Alix">Alix</option>
-                            </select>
+            <div class="header-content">
+                <div class="header-left">
+                    <img src="images/logo.png" alt="CafeStation Logo" class="company-logo">
+                    <div class="header-titles">
+                        <h1 class="company-name">Cafe Station</h1>
+                        <div class="branch-info">
+                            <div id="branchSelector" style="display: none;">
+                                <select id="branchSelect" onchange="handleBranchChange(this.value)">
+                                    <option value="">Select a Branch</option>
+                                    <option value="Madinaty">Madinaty</option>
+                                    <option value="Rehab">Rehab</option>
+                                    <option value="Nasr City">Nasr City</option>
+                                    <option value="Tagamo3">Tagamo3</option>
+                                    <option value="Alix">Alix</option>
+                                </select>
+                            </div>
+                            <h2 class="branch-name">Branch: <span class="userBranchDisplay"></span></h2>
                         </div>
-                        <h2 class="branch-display">Manage Employee: <span class="userBranchDisplay"></span></h2>
                     </div>
                 </div>
+                <div class="header-right">
+                    <button class="logout-button" onclick="logout()">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Logout</span>
+                    </button>
+                </div>
             </div>
-            <button class="logout-button" onclick="logout()">
-                <i class="fas fa-sign-out-alt"></i>
-                <span>Logout</span>
-            </button>
         </div>
+
+        <!-- Navigation Buttons -->
         <div class="buttons-container">
             <button class="action-button" onclick="showAddEmployee()">
                 <i class="fas fa-user-plus"></i>
@@ -89,135 +96,136 @@
             </button>
         </div>
 
-        <!-- Employee Add Form -->
-        <div id="addEmployeeForm" class="form-container" style="display: none;">
-            <h2>Manage Employee</h2>
-            <div class="form-group">
-                <h3 class="branch-display">Branch: <span class="userBranchDisplay"></span></h3>
-            </div>
-            
-            <!-- Employees List -->
-            <div class="table-container">
-                <div id="employeesListView">
-                    <table class="employees-table">
-                        <thead>
-                            <tr>
-                                <th>Code</th>
-                                <th>Employee Name</th>
-                                <th>Job Title</th>
-                                <th>Phone</th>
-                                <th>Branch</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- Employees will be added here dynamically -->
-                        </tbody>
-                    </table>
+        <!-- Forms Section -->
+        <section class="forms-section">
+            <!-- Employee Management Form -->
+            <div id="addEmployeeForm" class="form-container" style="display: none;">
+                <h2>Manage Employee</h2>
+                <div class="form-group">
+                    <h3 class="branch-display">Branch: <span class="userBranchDisplay"></span></h3>
                 </div>
+                
+                <!-- Employees Table -->
+                <div class="table-container">
+                    <div id="employeesListView">
+                        <table class="employees-table">
+                            <thead>
+                                <tr>
+                                    <th>Code</th>
+                                    <th>Employee Name</th>
+                                    <th>Job Title</th>
+                                    <th>Phone</th>
+                                    <th>Branch</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Employees will be added here dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Add New Employee Section -->
+                <button id="toggleAddEmployeeForm" class="toggle-form-btn">Add New Employee</button>
+
+                <form id="employeeForm" style="display: none;">
+                    <h3>Add New Employee</h3>
+                    <input type="text" id="empCode" placeholder="Employee Code" required>
+                    <input type="text" id="empName" placeholder="Employee Name" required>
+                    <input type="text" id="empTitle" placeholder="Job Title" required>
+                    <input type="tel" id="empPhone" placeholder="Phone Number" required>
+                    <input type="text" id="empBranch" readonly>
+                    <button type="submit">Save</button>
+                </form>
             </div>
 
-            <!-- Add New Employee Button -->
-            <button id="toggleAddEmployeeForm" class="toggle-form-btn">Add New Employee</button>
+            <!-- Attendance Form -->
+            <div id="attendanceForm" class="form-container" style="display: none;">
+                <h2>Attendance Record</h2>
+                <div class="form-group">
+                    <h3 class="branch-display">Branch: <span class="userBranchDisplay"></span></h3>
+                </div>
+                <div id="employeesList"></div>
+                <button onclick="saveAttendance()" class="save-btn">Save Attendance</button>
+            </div>
 
-            <!-- Add New Employee Form -->
-            <form id="employeeForm" style="display: none;">
-                <h3>Add New Employee</h3>
-                <input type="text" id="empCode" placeholder="Employee Code" required>
-                <input type="text" id="empName" placeholder="Employee Name" required>
-                <input type="text" id="empTitle" placeholder="Job Title" required>
-                <input type="tel" id="empPhone" placeholder="Phone Number" required>
-                <input type="text" id="empBranch" readonly>
-                <button type="submit">Save</button>
-            </form>
-
-        </div>
-
-        <!-- Attendance Form -->
-        <div id="attendanceForm" class="form-container" style="display: none;">
-            <h2>Attendance Record</h2>
-            <div class="form-group">
+            <!-- Evaluation Form -->
+            <div id="evaluationForm" class="form-container" style="display: none;">
+                <h2>Employee Evaluation</h2>
                 <h3 class="branch-display">Branch: <span class="userBranchDisplay"></span></h3>
+                
+                <div class="employees-evaluation-list" id="employeesEvaluationList">
+                    <!-- Employees will be added here dynamically -->
+                </div>
+                
+                <button onclick="submitAllEvaluations()" class="save-all-btn">Save All Evaluations</button>
             </div>
-            <div id="employeesList"></div>
-            <button onclick="saveAttendance()" class="save-btn">Save Attendance</button>
-        </div>
 
-        <!-- Evaluation Form -->
-        <div id="evaluationForm" class="form-container" style="display: none;">
-            <h2>Employee Evaluation</h2>
-            <h3 class="branch-display">Branch: <span class="userBranchDisplay"></span></h3>
-            
-            <div class="employees-evaluation-list" id="employeesEvaluationList">
-                <!-- Employees will be added here dynamically -->
-            </div>
-            
-            <button onclick="submitAllEvaluations()" class="save-all-btn">Save All Evaluations</button>
-        </div>
-
-        <!-- Penalty Form -->
-        <div id="penaltyForm" class="form-container" style="display: none; direction: ltr; text-align: left;">
-            <h2>Add Penalty</h2>
-            <h3 class="branch-display">Branch: <span class="userBranchDisplay"></span></h3>
-            <select id="penaltyEmployeeSelect" style="text-align: left;">
-                <option value="">Select Employee</option>
-            </select>
-            <select id="penaltyReason" required style="text-align: left;">
-                <option value="">Select Penalty Reason</option>
-                <option value="Unauthorized Absence">Unauthorized Absence</option>
-                <option value="Dress Code Violation">Dress Code Violation</option>
-                <option value="Not Following Instructions">Not Following Instructions</option>
-                <option value="Inappropriate Behavior">Inappropriate Behavior</option>
-            </select>
-            <select id="penaltyAmount" required style="text-align: left;">
-                <option value="">Select Deduction Amount</option>
-                <option value="ربع يوم">ربع يوم</option>
-                <option value="نصف يوم">نصف يوم</option>
-                <option value="يوم كامل">يوم كامل</option>
-                <option value="ثلاثة أيام">ثلاثة أيام</option>
-            </select>
-            <button onclick="submitPenalty()">Save Penalty</button>
-        </div>
-
-        <!-- Best Employee Report -->
-        <div id="bestEmployeeReport" class="form-container" style="display: none;">
-            <h2>Best Employee Report</h2>
-            <div id="bestEmployeeData"></div>
-        </div>
-
-        <!-- Employee Report Form -->
-        <div id="employeeReportForm" class="form-container" style="display: none;">
-            <h2>Employee Reports</h2>
-            <div class="form-group">
+            <!-- Penalty Form -->
+            <div id="penaltyForm" class="form-container" style="display: none; direction: ltr; text-align: left;">
+                <h2>Add Penalty</h2>
                 <h3 class="branch-display">Branch: <span class="userBranchDisplay"></span></h3>
-            </div>
-            
-            <div class="report-controls">
-                <select id="reportEmployeeSelect" required>
+                <select id="penaltyEmployeeSelect" style="text-align: left;">
                     <option value="">Select Employee</option>
                 </select>
-                
-                <select id="reportType" required>
-                    <option value="">Select Report Type</option>
-                    <option value="attendance">Attendance Record</option>
-                    <option value="evaluation">Employee Evaluations</option>
-                    <option value="penalty">Penalties</option>
+                <select id="penaltyReason" required style="text-align: left;">
+                    <option value="">Select Penalty Reason</option>
+                    <option value="Unauthorized Absence">Unauthorized Absence</option>
+                    <option value="Dress Code Violation">Dress Code Violation</option>
+                    <option value="Not Following Instructions">Not Following Instructions</option>
+                    <option value="Inappropriate Behavior">Inappropriate Behavior</option>
                 </select>
+                <select id="penaltyAmount" required style="text-align: left;">
+                    <option value="">Select Deduction Amount</option>
+                    <option value="ربع يوم">ربع يوم</option>
+                    <option value="نصف يوم">نصف يوم</option>
+                    <option value="يوم كامل">يوم كامل</option>
+                    <option value="ثلاثة أيام">ثلاثة أيام</option>
+                </select>
+                <button onclick="submitPenalty()">Save Penalty</button>
+            </div>
 
-                <!-- Add month selector -->
-                <div class="month-selector">
-                    <input type="month" id="reportMonth" required>
+            <!-- Best Employee Report -->
+            <div id="bestEmployeeReport" class="form-container" style="display: none;">
+                <h2>Best Employee Report</h2>
+                <div id="bestEmployeeData"></div>
+            </div>
+
+            <!-- Employee Report Form -->
+            <div id="employeeReportForm" class="form-container" style="display: none;">
+                <h2>Employee Reports</h2>
+                <div class="form-group">
+                    <h3 class="branch-display">Branch: <span class="userBranchDisplay"></span></h3>
                 </div>
                 
-                <button onclick="generateReport()" class="generate-report-btn">
-                    Generate Report
-                </button>
+                <div class="report-controls">
+                    <select id="reportEmployeeSelect" required>
+                        <option value="">Select Employee</option>
+                    </select>
+                    
+                    <select id="reportType" required>
+                        <option value="">Select Report Type</option>
+                        <option value="attendance">Attendance Record</option>
+                        <option value="evaluation">Employee Evaluations</option>
+                        <option value="penalty">Penalties</option>
+                    </select>
+
+                    <!-- Add month selector -->
+                    <div class="month-selector">
+                        <input type="month" id="reportMonth" required>
+                    </div>
+                    
+                    <button onclick="generateReport()" class="generate-report-btn">
+                        Generate Report
+                    </button>
+                </div>
+                
+                <div id="reportResults" class="report-results">
+                    <!-- Results will appear here -->
+                </div>
             </div>
-            
-            <div id="reportResults" class="report-results">
-                <!-- Results will appear here -->
-            </div>
-        </div>
+        </section>
     </div>
     <script src="script.js"></script>
 </body>
