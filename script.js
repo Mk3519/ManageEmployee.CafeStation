@@ -156,7 +156,7 @@ function updateCurrentForm(branch) {
     for (const [formId, updateFunction] of Object.entries(forms)) {
         const form = document.getElementById(formId);
         if (form && form.style.display !== 'none') {
-            showMessage(`جاري تحديث ${formId} للفرع ${branch}`, 'success');
+            showMessage(`تم تغيير ${formId} للفرع ${branch}`, 'success');
             // إضافة مؤشر التحميل
             form.innerHTML = `
                 <div class="loading-overlay">
@@ -1423,7 +1423,7 @@ function displayAttendanceReport(data) {
 // دالة لحساب إحصائيات الحضور
 function calculateAttendanceStats(data) {
     const presentDays = data.filter(record => record.status === 'Present').length;
-    const absentDays = data.filter(record => record.status === 'Absent' || record.status === 'Unauth Leave').length;
+    const absentDays = data.filter(record => record.status === 'Absent' || record.status === 'Leave a vacation').length;
     const leaveDays = data.filter(record => record.status === 'vacation').length;
     const totalDays = data.length;
     
