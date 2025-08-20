@@ -1268,11 +1268,11 @@ input, select, textarea {
     background-color: #ffebee;
 }
 
-.status-leave {
+.status-vacation {
     background-color: #fff3e0;
 }
 
-.status-unauth-leave {
+.status- Leave a vacation {
     background-color: #fce4ec;
 }
 
@@ -1421,12 +1421,12 @@ select, input {
     color: #c62828;
 }
 
-.status.leave {
+.status.vacation {
     background-color: #fff3e0;
     color: #ef6c00;
 }
 
-.status.unauth-leave {
+.status.Leave a vacation {
     background-color: #fce4ec;
     color: #c2185b;
 }
@@ -1551,6 +1551,249 @@ select, input {
 
 .toggle-form-btn:hover {
     background-color: #3498db;
+}
+
+/* Header Styles */
+.header {
+    background-color: #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    padding: 1rem;
+    margin-bottom: 2rem;
+}
+
+.header-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.company-logo {
+    width: 60px;
+    height: 60px;
+    object-fit: contain;
+}
+
+.header-titles {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.company-name {
+    font-size: 1.8rem;
+    font-weight: bold;
+    margin: 0;
+    color: #333;
+}
+
+.branch-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.branch-name {
+    font-size: 1.2rem;
+    color: #666;
+    margin: 0;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+}
+
+.logout-button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 4px;
+    background-color: #f44336;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.logout-button:hover {
+    background-color: #d32f2f;
+}
+
+.logout-button i {
+    font-size: 1.1rem;
+}
+
+#branchSelect {
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+}
+
+/* Attendance Form Styling */
+#employeesList {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+    padding: 20px;
+}
+
+.employee-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.employee-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.employee-info {
+    border-bottom: 1px solid #eee;
+    padding-bottom: 15px;
+    margin-bottom: 15px;
+}
+
+.employee-name {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 5px;
+}
+
+.employee-title {
+    color: #7f8c8d;
+    font-size: 0.9rem;
+}
+
+.attendance-options {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+.radio-option {
+    position: relative;
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    background: #f8f9fa;
+    border: 2px solid transparent;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.radio-option:hover {
+    background: #e9ecef;
+    border-color: #dee2e6;
+}
+
+.radio-option input[type="radio"] {
+    width: 18px;
+    height: 18px;
+    margin-right: 8px;
+    cursor: pointer;
+}
+
+.radio-option span {
+    font-size: 0.9rem;
+    color: #495057;
+    transition: color 0.2s ease;
+}
+
+/* Status-specific styles */
+.radio-option input[value="Present"]:checked + span {
+    color: #28a745;
+    font-weight: 600;
+}
+
+.radio-option input[value="Present"]:checked ~ .radio-option {
+    border-color: #28a745;
+    background-color: #d4edda;
+}
+
+.radio-option input[value="Absent"]:checked + span {
+    color: #dc3545;
+    font-weight: 600;
+}
+
+.radio-option input[value="Absent"]:checked ~ .radio-option {
+    border-color: #dc3545;
+    background-color: #f8d7da;
+}
+
+.radio-option input[value="vacation"]:checked + span,
+.radio-option input[value="Leave a vacation"]:checked + span {
+    color: #fd7e14;
+    font-weight: 600;
+}
+
+.radio-option input[value="vacation"]:checked ~ .radio-option,
+.radio-option input[value="Leave a vacation"]:checked ~ .radio-option {
+    border-color: #fd7e14;
+    background-color: #fff3cd;
+}
+
+/* Save Button Styling */
+.save-btn {
+    display: block;
+    width: 100%;
+    max-width: 200px;
+    margin: 20px auto;
+    padding: 12px 0;
+    background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 6px rgba(41, 128, 185, 0.2);
+}
+
+.save-btn:hover {
+    background: linear-gradient(135deg, #2980b9 0%, #2475a8 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(41, 128, 185, 0.3);
+}
+
+.save-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(41, 128, 185, 0.2);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    #employeesList {
+        grid-template-columns: 1fr;
+        padding: 10px;
+    }
+
+    .attendance-options {
+        grid-template-columns: 1fr;
+    }
+
+    .radio-option {
+        padding: 8px;
+    }
+
+    .employee-name {
+        font-size: 1.1rem;
+    }
 }
 
 
