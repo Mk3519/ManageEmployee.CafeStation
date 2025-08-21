@@ -162,6 +162,7 @@ body {
 }
 
 .header {
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -188,34 +189,34 @@ body {
 
 .logout-button {
     position: absolute;
-    top: 50%;
-    left: 20px;
-    transform: translateY(-50%);
-    padding: 10px 20px;
-    background: linear-gradient(135deg, #ff6b6b 0%, #ee5253 100%);
+    top: 5px;
+    left: 5px;
+    padding: 2px 4px;
+    background: #ff5252;
     color: white;
     border: none;
-    border-radius: 25px;
+    border-radius: 2px;
     cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 10px;
-    font-size: 15px;
+    gap: 2px;
+    font-size: 10px;
     font-weight: 500;
-    letter-spacing: 0.5px;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(238, 82, 83, 0.2);
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 2px rgba(238, 82, 83, 0.2);
+    height: 16px;
+    min-width: 40px;
 }
 
 .logout-button i {
-    font-size: 18px;
-    transition: transform 0.3s ease;
+    font-size: 10px;
+    transition: transform 0.2s ease;
 }
 
 .logout-button:hover {
-    background: linear-gradient(135deg, #ff5252 0%, #d43434 100%);
-    box-shadow: 0 6px 20px rgba(238, 82, 83, 0.4);
-    transform: translateY(-50%) scale(1.02);
+    background: #d43434;
+    box-shadow: 0 1px 3px rgba(238, 82, 83, 0.3);
+    transform: translateY(-1px);
 }
 
 .logout-button:hover i {
