@@ -1,5 +1,5 @@
 // Google Apps Script URL
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbztM-bTHEtj5Z9fjsOaEaleyHCDvdkBFp4ERfYwRDJDbXQwSIxna29nzJTTQR9SGrorTQ/exec';
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzuBsDEbl0Ue8Xxt32l0QbroZDMWSuy8t8-m5_xnok8tcC25uLtpsHchtj0InS5jkgrfQ/exec';
 
 // Show Message Function
 function showMessage(message, type = 'success') {
@@ -1108,7 +1108,7 @@ function loadBestEmployee(branch) {
         <div class="loading-overlay">
             <div class="loading-container">
                 <div class="loading-circle"></div>
-                <div class="loading-text">جاري تحميل بيانات الموظف المثالي...</div>
+                <div class="loading-text">جاري تحميل بيانات الموظفين المثاليين...</div>
             </div>
         </div>
     `;
@@ -1116,71 +1116,85 @@ function loadBestEmployee(branch) {
     fetch(`${GOOGLE_SCRIPT_URL}?action=getBestEmployee&branch=${encodeURIComponent(branch)}`)
         .then(response => response.json())
         .then(data => {
-            if (data.success && data.employee) {
-                const attendanceRate = parseFloat(data.employee.attendanceRate).toFixed(2);
-                const evaluationRate = parseFloat(data.employee.evaluationRate).toFixed(2);
-                const penaltyDeduction = parseFloat(data.employee.penaltyDeduction).toFixed(2);
-                const finalScore = parseFloat(data.employee.finalScore).toFixed(2);
-
-                bestEmployeeData.innerHTML = `
-                    <div class="best-employee-card">
-                        <h3>الموظف المثالي لشهر ${new Date().toLocaleString('ar-EG', { month: 'long' })}</h3>
-                        <div class="employee-details">
-                            <div class="stat-group">
-                                <div class="stat-item">
-                                    <span class="stat-label">الاسم:</span>
-                                    <span class="stat-value">${data.employee.name}</span>
-                                </div>
-                                <div class="stat-item">
-                                    <span class="stat-label">الفرع:</span>
-                                    <span class="stat-value">${data.employee.branch}</span>
-                                </div>
-                                <div class="stat-item">
-                                    <span class="stat-label">المسمى الوظيفي:</span>
-                                    <span class="stat-value">${data.employee.title}</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="ratings-section">
-                            <h4>تفاصيل التقييم</h4>
-                            <div class="rating-items">
-                                <div class="rating-item">
-                                    <div class="rating-header">
-                                        <span class="rating-label">نسبة الحضور (50%)</span>
-                                        <span class="rating-value">${attendanceRate}%</span>
-                                    </div>
-                                    <div class="progress-bar">
-                                        <div class="progress" style="width: ${attendanceRate}%"></div>
-                                    </div>
-                                </div>
-                                <div class="rating-item">
-                                    <div class="rating-header">
-                                        <span class="rating-label">متوسط التقييم (50%)</span>
-                                        <span class="rating-value">${evaluationRate}%</span>
-                                    </div>
-                                    <div class="progress-bar">
-                                        <div class="progress" style="width: ${evaluationRate}%"></div>
-                                    </div>
-                                </div>
-                                ${data.employee.hasPenalty ? `
-                                    <div class="penalty-warning">
-                                        <i class="fas fa-exclamation-triangle"></i>
-                                        خصم الجزاءات: ${penaltyDeduction}%
-                                    </div>
-                                ` : ''}
-                                <div class="final-score">
-                                    <div class="rating-header">
-                                        <span class="rating-label">النتيجة النهائية</span>
-                                        <span class="rating-value">${finalScore}%</span>
-                                    </div>
-                                    <div class="progress-bar">
-                                        <div class="progress" style="width: ${finalScore}%"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+            if (data.success && data.employees && data.employees.length > 0) {
+                let html = `
+                    <h2 class="top-employees-title">
+                        الموظفين المثاليين لشهر ${new Date().toLocaleString('ar-EG', { month: 'long' })}
+                    </h2>
+                    <div class="top-employees-grid">
                 `;
+
+                data.employees.forEach((employee, index) => {
+                    const attendanceRate = parseFloat(employee.attendanceRate).toFixed(2);
+                    const evaluationRate = parseFloat(employee.evaluationRate).toFixed(2);
+                    const penaltyDeduction = parseFloat(employee.penaltyDeduction).toFixed(2);
+                    const finalScore = parseFloat(employee.finalScore).toFixed(2);
+                    
+                    html += `
+                        <div class="best-employee-card ${index === 0 ? 'gold' : ''}">
+                            ${index === 0 ? '<div class="crown">👑</div>' : ''}
+                            <div class="rank-badge">${index === 0 ? 'الموظف المثالي' : `المركز ${index + 1}`}</div>
+                            <h3>موظف الشهر</h3>
+                            <div class="employee-details">
+                                <div class="stat-group">
+                                    <div class="stat-item">
+                                        <span class="stat-label">الاسم:</span>
+                                        <span class="stat-value">${employee.name}</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span class="stat-label">الفرع:</span>
+                                        <span class="stat-value">${employee.branch}</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span class="stat-label">المسمى الوظيفي:</span>
+                                        <span class="stat-value">${employee.title}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="ratings-section">
+                                <h4>تفاصيل التقييم</h4>
+                                <div class="rating-items">
+                                    <div class="rating-item">
+                                        <div class="rating-header">
+                                            <span class="rating-label">نسبة الحضور (50%)</span>
+                                            <span class="rating-value">${attendanceRate}%</span>
+                                        </div>
+                                        <div class="progress-bar">
+                                            <div class="progress" style="width: ${attendanceRate}%"></div>
+                                        </div>
+                                    </div>
+                                    <div class="rating-item">
+                                        <div class="rating-header">
+                                            <span class="rating-label">متوسط التقييم (50%)</span>
+                                            <span class="rating-value">${evaluationRate}%</span>
+                                        </div>
+                                        <div class="progress-bar">
+                                            <div class="progress" style="width: ${evaluationRate}%"></div>
+                                        </div>
+                                    </div>
+                                    ${employee.hasPenalty ? `
+                                        <div class="penalty-warning">
+                                            <i class="fas fa-exclamation-triangle"></i>
+                                            خصم الجزاءات: ${penaltyDeduction}%
+                                        </div>
+                                    ` : ''}
+                                    <div class="final-score">
+                                        <div class="rating-header">
+                                            <span class="rating-label">النتيجة النهائية</span>
+                                            <span class="rating-value">${finalScore}%</span>
+                                        </div>
+                                        <div class="progress-bar">
+                                            <div class="progress" style="width: ${finalScore}%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                html += '</div>';
+                bestEmployeeData.innerHTML = html;
             } else {
                 bestEmployeeData.innerHTML = '<div class="no-data">لا توجد بيانات متاحة لهذا الشهر</div>';
             }
