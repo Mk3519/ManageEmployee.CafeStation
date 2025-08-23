@@ -540,10 +540,7 @@ function getBestEmployee(e) {
   try {
     console.log('getBestEmployee called with:', e);
     const branch = e?.parameter?.branch;
-    console.log('Branch:', branch);
-    
     if (!branch) {
-      console.log('No branch specified in request');
       throw new Error('لم يتم تحديد الفرع');
     }
 
@@ -553,89 +550,99 @@ function getBestEmployee(e) {
     const attendanceSheet = ss.getSheetByName('Attendance');
     const penaltiesSheet = ss.getSheetByName('Penalties');
     
-    // الحصول على بيانات الشهر الحالي
     const today = new Date();
     const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
     const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
     
-    // جلب البيانات
+    // الحصول على بيانات الموظفين في الفرع
     const employees = employeesSheet.getDataRange().getValues();
-    const evaluations = evaluationsSheet.getDataRange().getValues();
-    const attendance = attendanceSheet.getDataRange().getValues();
-    const penalties = penaltiesSheet.getDataRange().getValues();
-    
+    const branchEmployees = employees.slice(1).filter(emp => emp[4] === branch);
+
     let bestEmployee = null;
     let highestScore = 0;
-    
-    // حساب عدد أيام العمل في الشهر (باستثناء الجمعة)
-    const workDaysInMonth = getWorkDaysInMonth(firstDayOfMonth, lastDayOfMonth);
-    
-    // معالجة كل موظف في الفرع المحدد
-    console.log('All employees:', employees.slice(1));
-    const branchEmployees = employees.slice(1).filter(employee => employee[4] === branch);
-    console.log('Branch employees:', branchEmployees);
-    
-    branchEmployees.forEach(employee => {
-        const employeeCode = employee[0];
-        console.log('Processing employee:', employee);
-        
-        // حساب نسبة الحضور
-        const attendanceRate = calculateAttendanceRate(
-          attendance.slice(1),
-          employeeCode,
-          firstDayOfMonth,
-          workDaysInMonth
-        );
-        
-        // حساب متوسط التقييمات
-        const evaluationRate = calculateEvaluationRate(
-          evaluations.slice(1),
-          employeeCode,
-          firstDayOfMonth
-        );
-        
-        // التحقق من وجود جزاءات
-        const penaltyInfo = checkPenalties(
-          penalties.slice(1),
-          employeeCode,
-          firstDayOfMonth
-        );
-        
-        // حساب التقييم النهائي
-        // 40% للحضور + 60% للتقييم - خصم الجزاءات
-        const finalScore = calculateFinalScore(attendanceRate, evaluationRate, penaltyInfo.deduction);
-        
-        if (finalScore > highestScore) {
-          highestScore = finalScore;
-          bestEmployee = {
-            name: employee[1],
-            branch: employee[4],
-            title: employee[2],
-            attendanceRate: attendanceRate,
-            evaluationRate: evaluationRate,
-            hasPenalty: penaltyInfo.hasPenalty,
-            finalScore: finalScore
-          };
-        }
-    });
-    
-    const response = {
-      success: true,
-      employee: bestEmployee,
-      debug: {
-        employeesCount: employees.length - 1,
-        branchEmployeesCount: employees.slice(1).filter(emp => emp[4] === branch).length,
-        evaluationsCount: evaluations.length - 1,
-        attendanceCount: attendance.length - 1,
-        penaltiesCount: penalties.length - 1
+
+    // معالجة كل موظف
+    for (const employee of branchEmployees) {
+      const employeeId = employee[0];
+      
+      // حساب نسبة الحضور (50%)
+      const attendanceRecords = attendanceSheet.getDataRange().getValues()
+        .slice(1)
+        .filter(row => {
+          const date = new Date(row[0]);
+          return date >= firstDayOfMonth && 
+                 date <= lastDayOfMonth && 
+                 row[1] === employeeId &&
+                 row[2] === 'Present';
+        });
+      
+      const attendanceScore = (attendanceRecords.length / 26) * 50; // 26 يوم عمل في الشهر
+
+      // حساب متوسط التقييمات (50%)
+      const evaluations = evaluationsSheet.getDataRange().getValues()
+        .slice(1)
+        .filter(row => {
+          const date = new Date(row[0]);
+          return date >= firstDayOfMonth && 
+                 date <= lastDayOfMonth && 
+                 row[1] === employeeId;
+        });
+
+      let evaluationScore = 0;
+      if (evaluations.length > 0) {
+        const avgRating = evaluations.reduce((sum, row) => {
+          return sum + ((row[2] + row[3] + row[4] + row[5]) / 4);
+        }, 0) / evaluations.length;
+        evaluationScore = (avgRating / 5) * 50; // تحويل متوسط التقييم من 5 إلى 50%
       }
-    };
-    
-    console.log('Final response:', response);
-    
-    return ContentService.createTextOutput(JSON.stringify(response))
-      .setMimeType(ContentService.MimeType.JSON);
-    
+
+      // حساب خصومات الجزاءات
+      const penalties = penaltiesSheet.getDataRange().getValues()
+        .slice(1)
+        .filter(row => {
+          const date = new Date(row[0]);
+          return date >= firstDayOfMonth && 
+                 date <= lastDayOfMonth && 
+                 row[1] === employeeId;
+        });
+
+      let penaltyDeduction = 0;
+      if (penalties.length > 0) {
+        // حساب الخصم حسب نوع الجزاء
+        penalties.forEach(penalty => {
+          switch(penalty[3]) { // عمود مقدار الخصم
+            case 'ربع يوم': penaltyDeduction += 5; break;
+            case 'نصف يوم': penaltyDeduction += 10; break;
+            case 'يوم': penaltyDeduction += 15; break;
+            case 'يومين': penaltyDeduction += 20; break;
+            case 'ثلاثة أيام': penaltyDeduction += 25; break;
+          }
+        });
+      }
+
+      // حساب النتيجة النهائية
+      const finalScore = Math.max(0, attendanceScore + evaluationScore - penaltyDeduction);
+
+      if (finalScore > highestScore) {
+        highestScore = finalScore;
+        bestEmployee = {
+          name: employee[1],
+          branch: employee[4],
+          title: employee[2],
+          attendanceRate: attendanceScore,
+          evaluationRate: evaluationScore,
+          penaltyDeduction: penaltyDeduction,
+          hasPenalty: penalties.length > 0,
+          finalScore: finalScore
+        };
+      }
+    }
+
+    return ContentService.createTextOutput(JSON.stringify({
+      success: true,
+      employee: bestEmployee
+    })).setMimeType(ContentService.MimeType.JSON);
+
   } catch (error) {
     console.error('Error in getBestEmployee:', error);
     return ContentService.createTextOutput(JSON.stringify({
@@ -643,70 +650,6 @@ function getBestEmployee(e) {
       error: error.toString()
     })).setMimeType(ContentService.MimeType.JSON);
   }
-}
-
-// دالة لحساب أيام العمل في الشهر (باستثناء الجمعة)
-function getWorkDaysInMonth(startDate, endDate) {
-  let workDays = 0;
-  const currentDate = new Date(startDate);
-  
-  while (currentDate <= endDate) {
-    if (currentDate.getDay() !== 5) { // 5 يمثل يوم الجمعة
-      workDays++;
-    }
-    currentDate.setDate(currentDate.getDate() + 1);
-  }
-  
-  return workDays;
-}
-
-// دالة لحساب نسبة الحضور
-function calculateAttendanceRate(attendanceData, employeeCode, startDate, workDays) {
-  const presentDays = attendanceData.filter(row => {
-    const date = new Date(row[0]);
-    return date >= startDate && 
-           row[1] === employeeCode && 
-           row[2] === 'Present';
-  }).length;
-  
-  return (presentDays / workDays) * 100;
-}
-
-// دالة لحساب متوسط التقييمات
-function calculateEvaluationRate(evaluationsData, employeeCode, startDate) {
-  const monthEvaluations = evaluationsData.filter(row => {
-    const date = new Date(row[0]);
-    return date >= startDate && row[1] === employeeCode;
-  });
-  
-  if (monthEvaluations.length === 0) {
-    return 0;
-  }
-  
-  const averageRating = monthEvaluations.reduce((acc, row) => {
-    // حساب متوسط التقييمات (النظافة، المظهر، العمل الجماعي، الالتزام بالمواعيد)
-    return acc + ((row[2] + row[3] + row[4] + row[5]) / 4);
-  }, 0) / monthEvaluations.length;
-  
-  return (averageRating / 5) * 100; // تحويل التقييم إلى نسبة مئوية
-}
-
-// دالة للتحقق من الجزاءات
-function checkPenalties(penaltiesData, employeeCode, startDate) {
-  const monthPenalties = penaltiesData.filter(row => {
-    const date = new Date(row[0]);
-    return date >= startDate && row[1] === employeeCode;
-  });
-  
-  return {
-    hasPenalty: monthPenalties.length > 0,
-    deduction: monthPenalties.length > 0 ? 10 : 0 // خصم 10% في حالة وجود جزاءات
-  };
-}
-
-// دالة لحساب التقييم النهائي
-function calculateFinalScore(attendanceRate, evaluationRate, penaltyDeduction) {
-  return Math.max(0, (attendanceRate * 0.4) + (evaluationRate * 0.6) - penaltyDeduction);
 }
 
 function getEmployeeReport(e) {
@@ -730,7 +673,7 @@ function getEmployeeReport(e) {
         }
 
         // استخراج سجلات الحضور للموظف المحدد
-        const employeeAttendance = allData.slice(1)  // تخطي صف العناوين
+        const employeeAttendance = allData.slice(1)
           .filter(row => {
             console.log('Checking row:', row, 'Employee ID:', row[1], 'Looking for:', employeeId);
             return row[1].toString() === employeeId.toString();
@@ -757,13 +700,11 @@ function getEmployeeReport(e) {
         const allEvalData = evaluationsSheet.getDataRange().getValues();
         console.log('Total evaluation records:', allEvalData.length);
         
-        // التحقق من وجود بيانات
         if (allEvalData.length <= 1) {
           throw new Error('لا توجد سجلات تقييم');
         }
 
-        // استخراج سجلات التقييم للموظف المحدد
-        const employeeEvaluations = allEvalData.slice(1)  // تخطي صف العناوين
+        const employeeEvaluations = allEvalData.slice(1)
           .filter(row => {
             console.log('Checking evaluation row:', row, 'Employee ID:', row[1], 'Looking for:', employeeId);
             return row[1].toString() === employeeId.toString();
@@ -776,7 +717,7 @@ function getEmployeeReport(e) {
             punctuality: Number(row[5]),
             average: Number(row[6])
           }))
-          .sort((a, b) => new Date(b.date) - new Date(a.date)); // ترتيب حسب التاريخ تنازلياً
+          .sort((a, b) => new Date(b.date) - new Date(a.date));
 
         console.log('Found evaluation records:', employeeEvaluations.length);
         
@@ -795,7 +736,6 @@ function getEmployeeReport(e) {
         const allPenaltyData = penaltiesSheet.getDataRange().getValues();
         console.log('Total penalty records:', allPenaltyData.length);
         
-        // التحقق من وجود بيانات
         if (allPenaltyData.length <= 1) {
           throw new Error('لا توجد سجلات جزاءات');
         }
