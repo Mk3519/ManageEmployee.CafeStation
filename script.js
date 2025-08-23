@@ -1,5 +1,5 @@
 // Google Apps Script URL
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzuBsDEbl0Ue8Xxt32l0QbroZDMWSuy8t8-m5_xnok8tcC25uLtpsHchtj0InS5jkgrfQ/exec';
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwWcKdFDWM7sfdNWLdt6aTpu6Fs6xtCPeVcav4uGqGMzYodwpTiLsxr6zyA_DX-p8iAcw/exec';
 
 // Show Message Function
 function showMessage(message, type = 'success') {
@@ -615,7 +615,7 @@ function createEmployeeEvaluationCard(employee) {
                 </div>
             </div>
             <div class="criteria-item">
-                <label>المظهر العام</label>
+                <label>Appearance</label>
                 <div class="star-rating" data-criteria="appearance" data-rating="0">
                     <span class="star" data-value="1">☆</span>
                     <span class="star" data-value="2">☆</span>
@@ -625,7 +625,7 @@ function createEmployeeEvaluationCard(employee) {
                 </div>
             </div>
             <div class="criteria-item">
-                <label>العمل الجماعي</label>
+                <label>Teamwork</label>
                 <div class="star-rating" data-criteria="teamwork" data-rating="0">
                     <span class="star" data-value="1">☆</span>
                     <span class="star" data-value="2">☆</span>
@@ -635,7 +635,7 @@ function createEmployeeEvaluationCard(employee) {
                 </div>
             </div>
             <div class="criteria-item">
-                <label>الالتزام بالمواعيد</label>
+                <label>Punctuality</label>
                 <div class="star-rating" data-criteria="punctuality" data-rating="0">
                     <span class="star" data-value="1">☆</span>
                     <span class="star" data-value="2">☆</span>
@@ -1741,3 +1741,265 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 
+
+
+
+
+// دالة لتحديد النطاق الزمني في التقويم
+function highlightDateRange(startDate, endDate) {
+    // إضافة كلاس للأيام المحددة في التقويم
+    const datePickerCells = document.querySelectorAll('.ui-datepicker-calendar td');
+    datePickerCells.forEach(cell => {
+        const cellDate = new Date(cell.dataset.date);
+        if (cellDate >= startDate && cellDate <= endDate) {
+            cell.classList.add('selected-date-range');
+        }
+    });
+}
+
+// دالة لتحديث التقويم حسب المدة المختارة
+function updateCalendarRange(period) {
+    const today = new Date();
+    let startDate = new Date();
+    let endDate = new Date();
+
+    switch (period) {
+        case 'daily':
+            startDate = today;
+            endDate = today;
+            break;
+        case 'weekly':
+            // تحديد بداية الأسبوع (يوم الأحد)
+            startDate.setDate(today.getDate() - today.getDay());
+            // تحديد نهاية الأسبوع (يوم السبت)
+            endDate.setDate(startDate.getDate() + 6);
+            break;
+        case 'monthly':
+            // أول يوم في الشهر
+            startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+            // آخر يوم في الشهر
+            endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+            break;
+    }
+
+    // تحديث حقل التاريخ
+    document.getElementById('reportStartDate').value = startDate.toISOString().split('T')[0];
+    
+    // تحديث التقويم
+    highlightDateRange(startDate, endDate);
+    
+    return { startDate, endDate };
+}
+
+// تعديل دالة إنشاء التقرير الشامل
+async function generateComprehensiveReport() {
+    const period = document.getElementById('reportPeriod').value;
+    const { startDate, endDate } = updateCalendarRange(period);
+    const branch = document.querySelector('.userBranchDisplay').textContent;
+    const resultsContainer = document.getElementById('comprehensiveReportResults');
+
+    if (!period || !startDate) {
+        showMessage('الرجاء اختيار المدة وتاريخ البدء', 'error');
+        return;
+    }
+
+    // عرض شاشة التحميل
+    resultsContainer.innerHTML = `
+        <div class="loading-overlay">
+            <div class="loading-container">
+                <div class="loading-circle"></div>
+                <div class="loading-text">جاري تحميل التقرير الشامل...</div>
+            </div>
+        </div>
+    `;
+
+    try {
+        const reportData = await fetchComprehensiveReportData(period, startDate, branch);
+        displayComprehensiveReport(reportData, period, startDate);
+    } catch (error) {
+        console.error('Error generating comprehensive report:', error);
+        showMessage('حدث خطأ أثناء إنشاء التقرير', 'error');
+        resultsContainer.innerHTML = '<div class="error-message">حدث خطأ أثناء تحميل التقرير</div>';
+    }
+}
+
+// دالة جلب بيانات التقرير
+async function fetchComprehensiveReportData(period, startDate, branch) {
+    try {
+        const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=getComprehensiveReport&period=${period}&startDate=${startDate}&branch=${encodeURIComponent(branch)}`);
+        const data = await response.json();
+        
+        if (data.error) {
+            throw new Error(data.error);
+        }
+        
+        return data;
+    } catch (error) {
+        console.error('Error fetching report data:', error);
+        throw error;
+    }
+}
+
+// دالة عرض التقرير الشامل
+function displayComprehensiveReport(data, period, startDate) {
+    const resultsContainer = document.getElementById('comprehensiveReportResults');
+    const periodText = getPeriodText(period);
+    const dateText = formatReportDate(startDate, period);
+
+    let html = `
+        <div class="comprehensive-report">
+            <div class="report-header">
+                <h3>Comprehensive report ${periodText} - ${dateText}</h3>
+            </div>
+            <div class="table-container">
+                <div class="table-responsive">
+                    <table class="report-table">
+                        <thead>
+                            <tr>
+                                <th data-label="Code">Code</th>
+                                <th data-label="Name">Name</th>
+                                <th data-label="Title">Title</th>
+                                <th data-label="Present">Present</th>
+                                <th data-label="Absent">Absent</th>
+                                <th data-label="Vacations">Vacations</th>
+                                <th data-label="Cleanliness">Cleanliness</th>
+                                <th data-label="Appearance">Appearance</th>
+                                <th data-label="Teamwork">Teamwork</th>
+                                <th data-label="Punctuality">Punctuality</th>
+                                <th data-label="Penalties">Penalties</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+    `;
+
+    data.employees.forEach(employee => {
+        html += `
+            <tr>
+                <td data-label="Code">${employee.code}</td>
+                <td data-label="Name">${employee.name}</td>
+                <td data-label="Title">${employee.title}</td>
+                <td data-label="Present" class="present-cell">${employee.attendance.present}</td>
+                <td data-label="Absent" class="absent-cell">${employee.attendance.absent}</td>
+                <td data-label="Vacations" class="vacation-cell">${employee.attendance.vacation}</td>
+                <td data-label="Cleanliness" class="evaluation-cell">${employee.evaluations.cleanliness}</td>
+                <td data-label="Appearance" class="evaluation-cell">${employee.evaluations.appearance}</td>
+                <td data-label="Teamwork" class="evaluation-cell">${employee.evaluations.teamwork}</td>
+                <td data-label="Punctuality" class="evaluation-cell">${employee.evaluations.punctuality}</td>
+                <td data-label="Penalties" class="penalty-cell">${employee.penalties.totalDays}</td>
+            </tr>
+        `;
+    });
+
+    html += `
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="report-summary">
+                ${generateReportSummary(data)}
+            </div>
+        </div>
+    `;
+
+    resultsContainer.innerHTML = html;
+    
+    // إضافة مستمعات الأحداث للتفاعل على الأجهزة المحمولة
+    const table = resultsContainer.querySelector('table');
+    if (table) {
+        table.addEventListener('scroll', function(e) {
+            const headerCells = this.querySelectorAll('th');
+            const isScrolled = this.scrollLeft > 0;
+            headerCells.forEach(cell => {
+                cell.classList.toggle('sticky', isScrolled);
+            });
+        });
+    }
+}
+
+// دالة تنسيق التاريخ حسب نوع التقرير
+function formatReportDate(startDate, period) {
+    const date = new Date(startDate);
+    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+    
+    switch (period) {
+        case 'daily':
+            return date.toLocaleDateString('EG', options);
+        case 'weekly':
+            const endDate = new Date(date);
+            endDate.setDate(date.getDate() + 6);
+            return `${date.toLocaleDateString('EG', options)} - ${endDate.toLocaleDateString('ar-EG', options)}`;
+        case 'monthly':
+            return date.toLocaleDateString('EG', { year: 'numeric', month: 'long' });
+        default:
+            return '';
+    }
+}
+
+// دالة الحصول على نص المدة
+function getPeriodText(period) {
+    const periods = {
+        'daily': 'daily',
+        'weekly': 'weekly',
+        'monthly': 'monthly'
+    };
+    return periods[period] || '';
+}
+
+// دالة حساب متوسط التقييم
+function calculateEvaluationAverage(evaluations) {
+    if (!evaluations || evaluations.length === 0) return 'لا يوجد تقييم';
+    
+    const sum = evaluations.reduce((acc, eval) => acc + eval.average, 0);
+    const avg = (sum / evaluations.length).toFixed(1);
+    return `${avg}/5`;
+}
+
+// دالة تحديد حالة الحضور وتصنيفها
+function getAttendanceStatusClass(attendance) {
+    if (!attendance) {
+        return { class: '', text: 'لا يوجد سجل' };
+    }
+
+    const statusClasses = {
+        'Present': { class: 'status-present', text: 'حاضر' },
+        'Absent': { class: 'status-absent', text: 'غائب' },
+        'vacation': { class: 'status-vacation', text: 'إجازة' },
+        'Leave a vacation': { class: 'status-vacation', text: 'إجازة' }
+    };
+
+    return statusClasses[attendance] || { class: '', text: attendance };
+}
+
+// دالة إنشاء ملخص التقرير
+function generateReportSummary(data) {
+    const totalEmployees = data.employees.length;
+    const presentCount = data.employees.filter(emp => emp.attendance === 'Present').length;
+    const absentCount = data.employees.filter(emp => emp.attendance === 'Absent').length;
+    const vacationCount = data.employees.filter(emp => 
+        emp.attendance === 'vacation' || emp.attendance === 'Leave a vacation'
+    ).length;
+
+    return `
+
+    `;
+}
+
+// إضافة زر التقرير الشامل في القائمة
+function showComprehensiveReport() {
+    hideAllForms();
+    const reportForm = document.getElementById('comprehensiveReportForm');
+    reportForm.style.display = 'block';
+    
+    // إضافة مستمع الحدث لتغيير المدة
+    const periodSelect = document.getElementById('reportPeriod');
+    periodSelect.addEventListener('change', function() {
+        updateCalendarRange(this.value);
+    });
+    
+    // تحديث التاريخ الافتراضي ليكون اليوم
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('reportStartDate').value = today;
+    
+    // تحديث النطاق المحدد في التقويم
+    updateCalendarRange(periodSelect.value);
+}
