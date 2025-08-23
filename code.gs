@@ -554,12 +554,10 @@ function getBestEmployee(e) {
     const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
     const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
     
-    // الحصول على بيانات الموظفين في الفرع
     const employees = employeesSheet.getDataRange().getValues();
     const branchEmployees = employees.slice(1).filter(emp => emp[4] === branch);
 
-    let bestEmployee = null;
-    let highestScore = 0;
+    let employeeScores = [];
 
     // معالجة كل موظف
     for (const employee of branchEmployees) {
@@ -576,7 +574,7 @@ function getBestEmployee(e) {
                  row[2] === 'Present';
         });
       
-      const attendanceScore = (attendanceRecords.length / 26) * 50; // 26 يوم عمل في الشهر
+      const attendanceScore = (attendanceRecords.length / 26) * 50;
 
       // حساب متوسط التقييمات (50%)
       const evaluations = evaluationsSheet.getDataRange().getValues()
@@ -593,7 +591,7 @@ function getBestEmployee(e) {
         const avgRating = evaluations.reduce((sum, row) => {
           return sum + ((row[2] + row[3] + row[4] + row[5]) / 4);
         }, 0) / evaluations.length;
-        evaluationScore = (avgRating / 5) * 50; // تحويل متوسط التقييم من 5 إلى 50%
+        evaluationScore = (avgRating / 5) * 50;
       }
 
       // حساب خصومات الجزاءات
@@ -608,9 +606,8 @@ function getBestEmployee(e) {
 
       let penaltyDeduction = 0;
       if (penalties.length > 0) {
-        // حساب الخصم حسب نوع الجزاء
         penalties.forEach(penalty => {
-          switch(penalty[3]) { // عمود مقدار الخصم
+          switch(penalty[3]) {
             case 'ربع يوم': penaltyDeduction += 5; break;
             case 'نصف يوم': penaltyDeduction += 10; break;
             case 'يوم': penaltyDeduction += 15; break;
@@ -620,27 +617,29 @@ function getBestEmployee(e) {
         });
       }
 
-      // حساب النتيجة النهائية
       const finalScore = Math.max(0, attendanceScore + evaluationScore - penaltyDeduction);
 
-      if (finalScore > highestScore) {
-        highestScore = finalScore;
-        bestEmployee = {
-          name: employee[1],
-          branch: employee[4],
-          title: employee[2],
-          attendanceRate: attendanceScore,
-          evaluationRate: evaluationScore,
-          penaltyDeduction: penaltyDeduction,
-          hasPenalty: penalties.length > 0,
-          finalScore: finalScore
-        };
-      }
+      employeeScores.push({
+        name: employee[1],
+        branch: employee[4],
+        title: employee[2],
+        attendanceRate: attendanceScore,
+        evaluationRate: evaluationScore,
+        penaltyDeduction: penaltyDeduction,
+        hasPenalty: penalties.length > 0,
+        finalScore: finalScore
+      });
     }
+
+    // ترتيب الموظفين حسب النتيجة النهائية
+    employeeScores.sort((a, b) => b.finalScore - a.finalScore);
+
+    // أخذ أفضل 4 موظفين
+    const topEmployees = employeeScores.slice(0, 4);
 
     return ContentService.createTextOutput(JSON.stringify({
       success: true,
-      employee: bestEmployee
+      employees: topEmployees
     })).setMimeType(ContentService.MimeType.JSON);
 
   } catch (error) {
