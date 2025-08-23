@@ -7,6 +7,7 @@
     <link rel="icon" href="images/logo.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
+
 </head>
 <body>
     <!-- Login Section -->
@@ -93,6 +94,10 @@
             <button class="action-button" onclick="showEmployeeReport()">
                 <i class="fas fa-file-alt"></i>
                 Employee reports
+            </button>
+            <button class="action-button" onclick="showComprehensiveReport()">
+                <i class="fas fa-chart-bar"></i>
+                Comprehensive report
             </button>
         </div>
 
@@ -227,6 +232,35 @@
                 
                 <div id="reportResults" class="report-results">
                     <!-- Results will appear here -->
+                </div>
+            </div>
+
+            <!-- Comprehensive Report Form -->
+            <div id="comprehensiveReportForm" class="form-container" style="display: none;">
+                <h2>Comprehensive report</h2>
+                <div class="form-group">
+                    <h3 class="branch-display">Branch: <span class="userBranchDisplay"></span></h3>
+                </div>
+                
+                <div class="report-controls">
+                    <select id="reportPeriod" required>
+                        <option value="">Select Period</option>
+                        <option value="daily">Daily Report</option>
+                        <option value="weekly">Weekly Report</option>
+                        <option value="monthly">Monthly Report</option>
+                    </select>
+
+                    <div class="date-selector">
+                        <input type="date" id="reportStartDate" required class="date-picker">
+                    </div>
+                    
+                    <button onclick="generateComprehensiveReport()" class="generate-report-btn">
+                        Generate Report
+                    </button>
+                </div>
+                
+                <div id="comprehensiveReportResults" class="comprehensive-report-results">
+                    <!-- نتائج التقرير ستظهر هنا -->
                 </div>
             </div>
         </section>
