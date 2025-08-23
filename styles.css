@@ -1798,4 +1798,74 @@ select, input {
 }
 
 
+/* Penalty Styles */
+.rating-item.penalty {
+    margin-top: 10px;
+    background-color: rgba(255, 0, 0, 0.05);
+    padding: 10px;
+    border-radius: 5px;
+}
 
+.rating-item.penalty .progress.negative {
+    background-color: #ff4444;
+}
+
+.rating-item.penalty.has-penalty .rating-value {
+    color: #ff4444;
+    font-weight: bold;
+}
+
+.rating-item.penalty .rating-label {
+    color: #ff4444;
+}
+
+.top-employees-title {
+    text-align: center;
+    margin-bottom: 2rem;
+    color: #2c3e50;
+}
+
+.top-employees-grid {
+    display: grid;
+    gap: 2rem;
+    padding: 1rem;
+}
+
+.best-employee-card {
+    position: relative;
+    border: 2px solid #e0e0e0;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.best-employee-card.gold {
+    border-color: #ffd700;
+    background: linear-gradient(135deg, rgba(255,215,0,0.1) 0%, rgba(255,215,0,0.05) 100%);
+    box-shadow: 0 4px 20px rgba(255,215,0,0.2);
+}
+
+.crown {
+    position: absolute;
+    top: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #ffd700;
+    font-size: 2rem;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+}
+
+.rank-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: #2c3e50;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-weight: bold;
+}
+
+@media (min-width: 768px) {
+    .top-employees-grid {
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    }
+}
