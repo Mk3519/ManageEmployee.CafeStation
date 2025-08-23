@@ -1869,3 +1869,326 @@ select, input {
         grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     }
 }
+
+
+
+
+
+
+
+/* تنسيق الأيام المحددة في التقويم */
+.selected-date-range {
+    background-color: #3498db !important;
+    color: white !important;
+}
+
+.selected-date-range:hover {
+    background-color: #2980b9 !important;
+}
+
+/* تنسيق التقويم */
+.date-picker {
+    position: relative;
+}
+
+.ui-datepicker {
+    padding: 10px;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.ui-datepicker-header {
+    background: #3498db;
+    color: white;
+    padding: 5px;
+    border-radius: 3px 3px 0 0;
+}
+
+.ui-datepicker-calendar th {
+    padding: 5px;
+    color: #666;
+}
+
+.ui-datepicker-calendar td {
+    padding: 2px;
+    text-align: center;
+}
+
+.ui-datepicker-calendar td:not(.selected-date-range) {
+    background: white;
+}
+
+.ui-datepicker-calendar td:hover:not(.selected-date-range) {
+    background: #f5f5f5;
+}
+
+/* تنسيق أزرار التنقل */
+.ui-datepicker-prev,
+.ui-datepicker-next {
+    cursor: pointer;
+    padding: 5px;
+    margin: 2px;
+    border-radius: 3px;
+}
+
+.ui-datepicker-prev:hover,
+.ui-datepicker-next:hover {
+    background: rgba(255,255,255,0.2);
+}
+
+/* تنسيق عنوان الشهر والسنة */
+.ui-datepicker-title {
+    font-weight: bold;
+    margin: 5px 0;
+}
+
+/* تنسيق مربع اختيار التاريخ */
+.date-picker {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    color: #333;
+    background-color: #fff;
+    cursor: pointer;
+    width: 200px;
+    margin: 10px 0;
+}
+
+.date-picker::-webkit-calendar-picker-indicator {
+    padding: 4px;
+    cursor: pointer;
+    border-radius: 3px;
+}
+
+.date-picker::-webkit-calendar-picker-indicator:hover {
+    background-color: #f0f0f0;
+}
+
+.date-picker:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+}
+
+/* تنسيق مربع اختيار التاريخ عند فتحه */
+.date-picker::-webkit-datetime-edit {
+    padding: 0 4px;
+}
+
+.date-picker::-webkit-datetime-edit-fields-wrapper {
+    background-color: transparent;
+}
+
+.date-picker::-webkit-datetime-edit-text {
+    color: #666;
+    padding: 0 2px;
+}
+
+.date-picker::-webkit-datetime-edit-month-field,
+.date-picker::-webkit-datetime-edit-day-field,
+.date-picker::-webkit-datetime-edit-year-field {
+    padding: 0 2px;
+    color: #333;
+}
+
+.date-picker::-webkit-inner-spin-button {
+    display: none;
+}
+
+/* تنسيق قائمة التاريخ المنسدلة */
+.date-picker::-webkit-calendar-picker-indicator {
+    background-color: transparent;
+    padding: 8px;
+    cursor: pointer;
+}
+
+.date-picker::-webkit-calendar-picker-indicator:hover {
+    background-color: rgba(52, 152, 219, 0.1);
+    border-radius: 4px;
+}
+
+/* تنسيق تقويم اختيار التاريخ */
+::-webkit-datetime-edit {
+    padding: 0.2em;
+}
+
+::-webkit-datetime-edit-fields-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+::-webkit-datetime-edit-text {
+    padding: 0 0.3em;
+}
+
+::-webkit-datetime-edit-month-field,
+::-webkit-datetime-edit-day-field,
+::-webkit-datetime-edit-year-field {
+    padding: 0.2em;
+}
+
+::-webkit-inner-spin-button {
+    display: none;
+}
+
+::-webkit-calendar-picker-indicator {
+    font-size: 1.2em;
+    opacity: 0.8;
+}
+
+::-webkit-calendar-picker-indicator:hover {
+    opacity: 1;
+}
+
+
+
+/* تنسيقات التقرير الشامل */
+.comprehensive-report {
+    margin: 15px;
+    padding: 15px;
+    background: white;
+}
+
+.comprehensive-report table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1rem;
+    background-color: transparent;
+    border: 1px solid #dee2e6;
+}
+
+.comprehensive-report th,
+.comprehensive-report td {
+    padding: 12px;
+    text-align: center;
+    border: 1px solid #dee2e6;
+    font-size: 14px;
+    white-space: nowrap;
+}
+
+.comprehensive-report th {
+    background: #f8f9fa;
+    font-weight: 600;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.comprehensive-report tbody tr:nth-child(even) {
+    background-color: #f8f9fa;
+}
+
+.comprehensive-report tbody tr:hover {
+    background-color: #f2f2f2;
+}
+
+.comprehensive-report .present-cell { color: #28a745; font-weight: bold; }
+.comprehensive-report .absent-cell { color: #dc3545; font-weight: bold; }
+.comprehensive-report .vacation-cell { color: #ffc107; font-weight: bold; }
+.comprehensive-report .evaluation-cell { color: #17a2b8; font-weight: bold; }
+.comprehensive-report .penalty-cell { color: #dc3545; font-weight: bold; }
+
+.comprehensive-report th,
+.comprehensive-report td {
+    padding: 8px;
+    border: 1px solid #dee2e6;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.comprehensive-report th {
+    background-color: #f8f9fa;
+    border-bottom: 2px solid #dee2e6;
+    font-weight: bold;
+    color: #333;
+}
+
+.comprehensive-report tr:nth-of-type(even) {
+    background-color: #f9f9f9;
+}
+
+.comprehensive-report tr:hover {
+    background-color: rgba(0,0,0,.075);
+}
+
+.comprehensive-report .present-cell { color: #28a745; }
+.comprehensive-report .absent-cell { color: #dc3545; }
+.comprehensive-report .vacation-cell { color: #ffc107; }
+.comprehensive-report .evaluation-cell { color: #17a2b8; }
+.comprehensive-report .penalty-cell { color: #dc3545; }
+
+/* تنسيقات الشاشات الصغيرة */
+@media screen and (max-width: 768px) {
+    .comprehensive-report {
+        margin: 10px;
+        padding: 10px;
+    }
+
+    .comprehensive-report .report-header h3 {
+        font-size: 16px;
+        margin-bottom: 15px;
+    }
+
+    .comprehensive-report table {
+        font-size: 13px;
+    }
+
+    .comprehensive-report th,
+    .comprehensive-report td {
+        padding: 6px;
+    }
+
+    .comprehensive-report .table-container {
+        margin: 0;
+        padding: 0;
+        overflow-x: auto;
+    }
+}
+
+.comprehensive-report .table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.comprehensive-report table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 800px;
+}
+
+/* للموبايل */
+@media screen and (max-width: 768px) {
+    .comprehensive-report table {
+        display: block;
+        min-width: unset;
+    }
+
+    .comprehensive-report thead {
+        display: none;
+    }
+
+    .comprehensive-report tr {
+        display: block;
+        margin-bottom: 15px;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+    }
+
+    .comprehensive-report td {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px 15px;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .comprehensive-report td:before {
+        content: attr(data-label);
+        font-weight: 600;
+        margin-right: 10px;
+    }
+}
+
