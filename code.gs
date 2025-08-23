@@ -22,11 +22,12 @@ function doGet(e) {
         return handleLogin(e.parameter.email, e.parameter.password);
       case 'getEmployeeReport':
         return getEmployeeReport(e);
-      
+      case 'getComprehensiveReport':
+        return getComprehensiveReport(e);
       default:
         return ContentService.createTextOutput(JSON.stringify({
           success: false,
-          error: 'Invalid action'
+          error: 'عملية غير صالحة'
         })).setMimeType(ContentService.MimeType.JSON);
     }
   } catch (error) {
@@ -778,6 +779,215 @@ function getEmployeeReport(e) {
       }
     })).setMimeType(ContentService.MimeType.JSON);
   }
+}
+
+function getEmployeeReport(e) {
+  try {
+    console.log('Getting employee report...');
+    return ContentService.createTextOutput(JSON.stringify({
+      success: true,
+      message: 'تم استلام الطلب'
+    })).setMimeType(ContentService.MimeType.JSON);
+  } catch (error) {
+    console.error('Error in getEmployeeReport:', error);
+    return ContentService.createTextOutput(JSON.stringify({
+      success: false,
+      error: error.toString()
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+
+// دالة الحصول على التقرير الشامل
+function getComprehensiveReport(e) {
+  try {
+    const period = e.parameter.period;
+    const startDate = e.parameter.startDate;
+    const branch = e.parameter.branch;
+    
+    if (!period || !startDate || !branch) {
+      throw new Error('يرجى توفير جميع المعلومات المطلوبة');
+    }
+
+    const ss = SpreadsheetApp.getActive();
+    const employeesSheet = ss.getSheetByName('Employees');
+    const attendanceSheet = ss.getSheetByName('Attendance');
+    const evaluationsSheet = ss.getSheetByName('Evaluations');
+    const penaltiesSheet = ss.getSheetByName('Penalties');
+
+    // تحديد نطاق التاريخ
+    const dateRange = getDateRange(startDate, period);
+    const startDateTime = dateRange.start;
+    const endDateTime = dateRange.end;
+
+    // الحصول على بيانات الموظفين في الفرع
+    const employees = employeesSheet.getDataRange().getValues();
+    const branchEmployees = employees.slice(1).filter(emp => emp[4] === branch);
+
+    // تجميع البيانات لكل موظف
+    const employeesData = branchEmployees.map(employee => {
+      const employeeCode = employee[0];
+      
+      // بيانات الحضور
+      const attendance = getAttendanceData(attendanceSheet, employeeCode, startDateTime, endDateTime);
+      
+      // بيانات التقييم
+      const evaluations = getEvaluationData(evaluationsSheet, employeeCode, startDateTime, endDateTime);
+      
+      // بيانات الجزاءات
+      const penalties = getPenaltyData(penaltiesSheet, employeeCode, startDateTime, endDateTime);
+
+      return {
+        code: employeeCode,
+        name: employee[1],
+        title: employee[2],
+        attendance: attendance,
+        evaluations: evaluations,
+        penalties: penalties
+      };
+    });
+
+    return ContentService.createTextOutput(JSON.stringify({
+      success: true,
+      employees: employeesData,
+      dateRange: {
+        start: formatDate(startDateTime),
+        end: formatDate(endDateTime)
+      }
+    })).setMimeType(ContentService.MimeType.JSON);
+
+  } catch (error) {
+    console.error('Error in getComprehensiveReport:', error);
+    return ContentService.createTextOutput(JSON.stringify({
+      success: false,
+      error: error.toString()
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+// دالة تحديد نطاق التاريخ حسب نوع التقرير
+function getDateRange(startDate, period) {
+  const start = new Date(startDate);
+  let end = new Date(start);
+  
+  switch (period) {
+    case 'daily':
+      end.setDate(start.getDate() + 1);
+      break;
+    case 'weekly':
+      end.setDate(start.getDate() + 7);
+      break;
+    case 'monthly':
+      end.setMonth(start.getMonth() + 1);
+      break;
+    default:
+      throw new Error('نوع تقرير غير صالح');
+  }
+  
+  return { start, end };
+}
+
+// دالة الحصول على بيانات الحضور
+function getAttendanceData(sheet, employeeCode, startDate, endDate) {
+  const data = sheet.getDataRange().getValues();
+  const records = data.slice(1).filter(row => {
+    const recordDate = new Date(row[0]);
+    return row[1] === employeeCode && 
+           recordDate >= startDate && 
+           recordDate < endDate;
+  });
+  
+  if (records.length === 0) {
+    return {
+      present: 0,
+      absent: 0,
+      vacation: 0
+    };
+  }
+  
+  // حساب إحصائيات الحضور
+  const stats = records.reduce((acc, row) => {
+    const status = row[2];
+    if (status === 'Present') acc.present++;
+    else if (status === 'Absent') acc.absent++;
+    else if (status === 'vacation' || status === 'Leave a vacation') acc.vacation++;
+    return acc;
+  }, { present: 0, absent: 0, vacation: 0 });
+  
+  return stats;
+}
+
+// دالة الحصول على بيانات التقييم
+function getEvaluationData(sheet, employeeCode, startDate, endDate) {
+  const data = sheet.getDataRange().getValues();
+  const records = data.slice(1).filter(row => {
+    const recordDate = new Date(row[0]);
+    return row[1] === employeeCode && 
+           recordDate >= startDate && 
+           recordDate < endDate;
+  });
+
+  if (records.length === 0) {
+    return {
+      cleanliness: 0,
+      appearance: 0,
+      teamwork: 0,
+      punctuality: 0
+    };
+  }
+
+  // حساب متوسط التقييمات
+  const totals = records.reduce((acc, row) => {
+    acc.cleanliness += Number(row[2]);
+    acc.appearance += Number(row[3]);
+    acc.teamwork += Number(row[4]);
+    acc.punctuality += Number(row[5]);
+    return acc;
+  }, { cleanliness: 0, appearance: 0, teamwork: 0, punctuality: 0 });
+
+  const count = records.length;
+  return {
+    cleanliness: (totals.cleanliness / count).toFixed(2),
+    appearance: (totals.appearance / count).toFixed(2),
+    teamwork: (totals.teamwork / count).toFixed(2),
+    punctuality: (totals.punctuality / count).toFixed(2)
+  };
+}
+
+// دالة الحصول على بيانات الجزاءات
+function getPenaltyData(sheet, employeeCode, startDate, endDate) {
+  const data = sheet.getDataRange().getValues();
+  const records = data.slice(1).filter(row => {
+    const recordDate = new Date(row[0]);
+    return row[1] === employeeCode && 
+           recordDate >= startDate && 
+           recordDate < endDate;
+  });
+
+  if (records.length === 0) {
+    return {
+      count: 0,
+      totalDays: 0
+    };
+  }
+
+  // حساب إجمالي أيام الجزاءات
+  const totalDays = records.reduce((total, row) => {
+    const amount = row[3];
+    switch(amount) {
+      case 'ربع يوم': return total + 0.25;
+      case 'نصف يوم': return total + 0.5;
+      case 'يوم': return total + 1;
+      case 'يومين': return total + 2;
+      case 'ثلاثة أيام': return total + 3;
+      default: return total;
+    }
+  }, 0);
+
+  return {
+    count: records.length,
+    totalDays: totalDays
+  };
 }
 
 // تحسين دالة تنسيق التاريخ
