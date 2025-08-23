@@ -1,5 +1,5 @@
 // Google Apps Script URL
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwk_Xl7EI65w1mkuHdSy0ryyen4AjE8jJcebz0mH5axhIN07rOuK0xiQfTnOJ54m7MCmg/exec';
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbztM-bTHEtj5Z9fjsOaEaleyHCDvdkBFp4ERfYwRDJDbXQwSIxna29nzJTTQR9SGrorTQ/exec';
 
 // Show Message Function
 function showMessage(message, type = 'success') {
@@ -1108,7 +1108,7 @@ function loadBestEmployee(branch) {
         <div class="loading-overlay">
             <div class="loading-container">
                 <div class="loading-circle"></div>
-                <div class="loading-text">Loading best employee data...</div>
+                <div class="loading-text">جاري تحميل بيانات الموظف المثالي...</div>
             </div>
         </div>
     `;
@@ -1119,33 +1119,34 @@ function loadBestEmployee(branch) {
             if (data.success && data.employee) {
                 const attendanceRate = parseFloat(data.employee.attendanceRate).toFixed(2);
                 const evaluationRate = parseFloat(data.employee.evaluationRate).toFixed(2);
+                const penaltyDeduction = parseFloat(data.employee.penaltyDeduction).toFixed(2);
                 const finalScore = parseFloat(data.employee.finalScore).toFixed(2);
 
                 bestEmployeeData.innerHTML = `
                     <div class="best-employee-card">
-                        <h3>Best Employee for ${new Date().toLocaleString('en-US', { month: 'long' })}</h3>
+                        <h3>الموظف المثالي لشهر ${new Date().toLocaleString('ar-EG', { month: 'long' })}</h3>
                         <div class="employee-details">
                             <div class="stat-group">
                                 <div class="stat-item">
-                                    <span class="stat-label">Name:</span>
+                                    <span class="stat-label">الاسم:</span>
                                     <span class="stat-value">${data.employee.name}</span>
                                 </div>
                                 <div class="stat-item">
-                                    <span class="stat-label">Branch:</span>
+                                    <span class="stat-label">الفرع:</span>
                                     <span class="stat-value">${data.employee.branch}</span>
                                 </div>
                                 <div class="stat-item">
-                                    <span class="stat-label">Position:</span>
+                                    <span class="stat-label">المسمى الوظيفي:</span>
                                     <span class="stat-value">${data.employee.title}</span>
                                 </div>
                             </div>
                         </div>
                         <div class="ratings-section">
-                            <h4>Performance Details</h4>
+                            <h4>تفاصيل التقييم</h4>
                             <div class="rating-items">
                                 <div class="rating-item">
                                     <div class="rating-header">
-                                        <span class="rating-label">Attendance Rate (40%)</span>
+                                        <span class="rating-label">نسبة الحضور (50%)</span>
                                         <span class="rating-value">${attendanceRate}%</span>
                                     </div>
                                     <div class="progress-bar">
@@ -1154,7 +1155,7 @@ function loadBestEmployee(branch) {
                                 </div>
                                 <div class="rating-item">
                                     <div class="rating-header">
-                                        <span class="rating-label">Evaluation Rate (60%)</span>
+                                        <span class="rating-label">متوسط التقييم (50%)</span>
                                         <span class="rating-value">${evaluationRate}%</span>
                                     </div>
                                     <div class="progress-bar">
@@ -1164,12 +1165,12 @@ function loadBestEmployee(branch) {
                                 ${data.employee.hasPenalty ? `
                                     <div class="penalty-warning">
                                         <i class="fas fa-exclamation-triangle"></i>
-                                        Penalty deduction applied
+                                        خصم الجزاءات: ${penaltyDeduction}%
                                     </div>
                                 ` : ''}
                                 <div class="final-score">
                                     <div class="rating-header">
-                                        <span class="rating-label">Final Score</span>
+                                        <span class="rating-label">النتيجة النهائية</span>
                                         <span class="rating-value">${finalScore}%</span>
                                     </div>
                                     <div class="progress-bar">
@@ -1181,12 +1182,12 @@ function loadBestEmployee(branch) {
                     </div>
                 `;
             } else {
-                bestEmployeeData.innerHTML = '<div class="no-data">No data available for this month</div>';
+                bestEmployeeData.innerHTML = '<div class="no-data">لا توجد بيانات متاحة لهذا الشهر</div>';
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            bestEmployeeData.innerHTML = '<div class="error-message">Error loading data</div>';
+            bestEmployeeData.innerHTML = '<div class="error-message">حدث خطأ أثناء تحميل البيانات</div>';
         });
 }
 
@@ -1682,201 +1683,8 @@ function initializeStarRatings() {
     });
 }
 
-// تقييم الموظفين
-function submitEvaluation() {
-    const employeeId = document.getElementById('evalEmployeeSelect').value;
-    if (!employeeId) {
-        showMessage('الرجاء اختيار موظف', 'error');
-        return;
-    }
 
-    const evaluationData = {
-        employeeId: employeeId,
-        cleanliness: document.querySelector('.criteria-item:nth-child(1) .star-rating').getAttribute('data-rating'),
-        appearance: document.querySelector('.criteria-item:nth-child(2) .star-rating').getAttribute('data-rating'),
-        teamwork: document.querySelector('.criteria-item:nth-child(3) .star-rating').getAttribute('data-rating'),
-        punctuality: document.querySelector('.criteria-item:nth-child(4) .star-rating').getAttribute('data-rating'),
-        date: new Date().toISOString()
-    };
 
-    fetch(GOOGLE_SCRIPT_URL, {
-        method: 'POST',
-        body: JSON.stringify({
-            action: 'submitEvaluation',
-            data: evaluationData
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            showMessage('The evaluation has been saved successfully', 'success');
-        } else {
-            showMessage('Error saving evaluation', 'error');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        showMessage('حدث خطأ في النظام', 'error');
-    });
-}
-
-// إضافة جزاء
-function submitPenalty() {
-    const employeeId = document.getElementById('penaltyEmployeeSelect').value;
-    const reason = document.getElementById('penaltyReason').value;
-    const deductionPeriod = document.getElementById('penaltyAmount').value;
-    const form = document.getElementById('penaltyForm');
-    const saveButton = form.querySelector('button');
-
-    if (!employeeId || !reason || !deductionPeriod) {
-        showMessage('Please fill in all fields', 'error');
-        return;
-    }
-
-    // إظهار حالة التحميل
-    const loadingOverlay = document.createElement('div');
-    loadingOverlay.className = 'loading-overlay';
-    loadingOverlay.innerHTML = `
-        <div class="loading-container">
-            <div class="loading-circle"></div>
-            <div class="loading-text">The penalty is being saved...</div>
-        </div>
-    `;
-    form.appendChild(loadingOverlay);
-    form.style.opacity = '0.7';
-    saveButton.disabled = true;
-
-    const params = new URLSearchParams();
-    params.append('action', 'addPenalty');
-    params.append('data', JSON.stringify({
-        employeeId: employeeId,
-        reason: reason,
-        deductionPeriod: deductionPeriod,
-        date: new Date().toISOString()
-    }));
-
-    fetch(GOOGLE_SCRIPT_URL, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: params.toString()
-    })
-    .then(response => response.json())
-    .then(data => {
-        // إزالة حالة التحميل
-        form.querySelector('.loading-overlay')?.remove();
-        form.style.opacity = '1';
-        saveButton.disabled = false;
-
-        if (data.success) {
-            showMessage('Penalty added successfully', 'success');
-            document.getElementById('penaltyReason').value = '';
-            document.getElementById('penaltyAmount').value = '';
-        } else {
-            showMessage('Error adding penalty', 'error');
-        }
-    })
-    .catch(error => {
-        // إزالة حالة التحميل
-        form.querySelector('.loading-overlay')?.remove();
-        form.style.opacity = '1';
-        saveButton.disabled = false;
-
-        console.error('Error:', error);
-        showMessage('A system error has occurred', 'error');
-    });
-}
-
-// تحميل بيانات الموظف الأفضل
-function loadBestEmployee(branch) {
-    const bestEmployeeData = document.getElementById('bestEmployeeData');
-    
-    bestEmployeeData.innerHTML = `
-        <div class="loading-overlay">
-            <div class="loading-container">
-                <div class="loading-circle"></div>
-                <div class="loading-text">Loading best employee data...</div>
-            </div>
-        </div>
-    `;
-
-    fetch(`${GOOGLE_SCRIPT_URL}?action=getBestEmployee&branch=${encodeURIComponent(branch)}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.success && data.employee) {
-                const attendanceRate = parseFloat(data.employee.attendanceRate).toFixed(2);
-                const evaluationRate = parseFloat(data.employee.evaluationRate).toFixed(2);
-                const finalScore = parseFloat(data.employee.finalScore).toFixed(2);
-
-                bestEmployeeData.innerHTML = `
-                    <div class="best-employee-card">
-                        <h3>Best Employee for ${new Date().toLocaleString('en-US', { month: 'long' })}</h3>
-                        <div class="employee-details">
-                            <div class="stat-group">
-                                <div class="stat-item">
-                                    <span class="stat-label">Name:</span>
-                                    <span class="stat-value">${data.employee.name}</span>
-                                </div>
-                                <div class="stat-item">
-                                    <span class="stat-label">Branch:</span>
-                                    <span class="stat-value">${data.employee.branch}</span>
-                                </div>
-                                <div class="stat-item">
-                                    <span class="stat-label">Position:</span>
-                                    <span class="stat-value">${data.employee.title}</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="ratings-section">
-                            <h4>Performance Details</h4>
-                            <div class="rating-items">
-                                <div class="rating-item">
-                                    <div class="rating-header">
-                                        <span class="rating-label">Attendance Rate (40%)</span>
-                                        <span class="rating-value">${attendanceRate}%</span>
-                                    </div>
-                                    <div class="progress-bar">
-                                        <div class="progress" style="width: ${attendanceRate}%"></div>
-                                    </div>
-                                </div>
-                                <div class="rating-item">
-                                    <div class="rating-header">
-                                        <span class="rating-label">Evaluation Rate (60%)</span>
-                                        <span class="rating-value">${evaluationRate}%</span>
-                                    </div>
-                                    <div class="progress-bar">
-                                        <div class="progress" style="width: ${evaluationRate}%"></div>
-                                    </div>
-                                </div>
-                                ${data.employee.hasPenalty ? `
-                                    <div class="penalty-warning">
-                                        <i class="fas fa-exclamation-triangle"></i>
-                                        Penalty deduction applied
-                                    </div>
-                                ` : ''}
-                                <div class="final-score">
-                                    <div class="rating-header">
-                                        <span class="rating-label">Final Score</span>
-                                        <span class="rating-value">${finalScore}%</span>
-                                    </div>
-                                    <div class="progress-bar">
-                                        <div class="progress" style="width: ${finalScore}%"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            } else {
-                bestEmployeeData.innerHTML = '<div class="no-data">No data available for this month</div>';
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            bestEmployeeData.innerHTML = '<div class="error-message">Error loading data</div>';
-        });
-}
 
 
 // تهيئة زر التبديل لنموذج إضافة الموظفين
