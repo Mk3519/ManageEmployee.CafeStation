@@ -1,5 +1,5 @@
 // Google Apps Script URL
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwWcKdFDWM7sfdNWLdt6aTpu6Fs6xtCPeVcav4uGqGMzYodwpTiLsxr6zyA_DX-p8iAcw/exec';
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbznNGbfK2WKhXIOsBHnv5ijF-b1-kku4Ah3rToaYoYbZb8TmSto7985KqvNZltvRv3H/exec';
 
 // Show Message Function
 function showMessage(message, type = 'success') {
