@@ -2159,36 +2159,3 @@ select, input {
     border-collapse: collapse;
     min-width: 800px;
 }
-
-/* للموبايل */
-@media screen and (max-width: 768px) {
-    .comprehensive-report table {
-        display: block;
-        min-width: unset;
-    }
-
-    .comprehensive-report thead {
-        display: none;
-    }
-
-    .comprehensive-report tr {
-        display: block;
-        margin-bottom: 15px;
-        border: 1px solid #dee2e6;
-        border-radius: 4px;
-    }
-
-    .comprehensive-report td {
-        display: flex;
-        justify-content: space-between;
-        padding: 10px 15px;
-        border-bottom: 1px solid #f0f0f0;
-    }
-
-    .comprehensive-report td:before {
-        content: attr(data-label);
-        font-weight: 600;
-        margin-right: 10px;
-    }
-}
-
