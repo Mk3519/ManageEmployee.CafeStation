@@ -1,5 +1,5 @@
 // Google Apps Script URL
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbznNGbfK2WKhXIOsBHnv5ijF-b1-kku4Ah3rToaYoYbZb8TmSto7985KqvNZltvRv3H/exec';
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxEdLGwroX-SFn40JBMpVJBJhuqi23hwFzuThwpbkopEo5az3FmKWU4pjy_p5U3oDeWiQ/exec';
 
 // Show Message Function
 function showMessage(message, type = 'success') {
@@ -156,7 +156,7 @@ function updateCurrentForm(branch) {
     for (const [formId, updateFunction] of Object.entries(forms)) {
         const form = document.getElementById(formId);
         if (form && form.style.display !== 'none') {
-            showMessage(`تم تغيير ${formId} للفرع ${branch}`, 'success');
+            showMessage(`Change for branch ${branch}`, 'success');
             // إضافة مؤشر التحميل
             form.innerHTML = `
                 <div class="loading-overlay">
@@ -704,7 +704,7 @@ function submitAllEvaluations() {
     );
 
     if (invalidEvaluations.length > 0) {
-        showMessage('الرجاء إكمال جميع معايير التقييم لكل موظف تم اختياره', 'error');
+        showMessage('Please complete all evaluation criteria for each selected employee', 'error');
         container.querySelector('.loading-overlay')?.remove();
         evaluationsList.style.opacity = '1';
         saveButton.disabled = false;
@@ -790,8 +790,8 @@ document.getElementById('employeeForm').addEventListener('submit', async functio
         // إزالة حالة التحميل
         formContainer.querySelector('.loading-overlay')?.remove();
         form.style.opacity = '1';
-        
-        showMessage('تم إضافة الموظف بنجاح', 'success');
+
+        showMessage('Employee added successfully', 'success');
         document.getElementById('employeeForm').reset();
         
         // إعادة تحميل قائمة الموظفين
@@ -952,11 +952,11 @@ async function saveAttendance() {
         saveButton.disabled = false;
 
         if (data.success) {
-            showMessage('تم تسجيل الحضور بنجاح', 'success');
+            showMessage('Attendance recorded successfully', 'success');
             // إعادة تحميل البيانات بعد النجاح
             await loadEmployeesByBranch(branch);
         } else {
-            showMessage('حدث خطأ أثناء تسجيل الحضور', 'error');
+            showMessage('Error recording attendance', 'error');
         }
     } catch (error) {
         // إزالة حالة التحميل في حالة الخطأ
@@ -1108,7 +1108,7 @@ function loadBestEmployee(branch) {
         <div class="loading-overlay">
             <div class="loading-container">
                 <div class="loading-circle"></div>
-                <div class="loading-text">جاري تحميل بيانات الموظفين المثاليين...</div>
+                <div class="loading-text">Loading Best Employee Data...</div>
             </div>
         </div>
     `;
@@ -1119,7 +1119,7 @@ function loadBestEmployee(branch) {
             if (data.success && data.employees && data.employees.length > 0) {
                 let html = `
                     <h2 class="top-employees-title">
-                        الموظفين المثاليين لشهر ${new Date().toLocaleString('ar-EG', { month: 'long' })}
+                        Best Employees for ${new Date().toLocaleString('en-US', { month: 'long' })}
                     </h2>
                     <div class="top-employees-grid">
                 `;
@@ -1133,30 +1133,30 @@ function loadBestEmployee(branch) {
                     html += `
                         <div class="best-employee-card ${index === 0 ? 'gold' : ''}">
                             ${index === 0 ? '<div class="crown">👑</div>' : ''}
-                            <div class="rank-badge">${index === 0 ? 'الموظف المثالي' : `المركز ${index + 1}`}</div>
-                            <h3>موظف الشهر</h3>
+                            <div class="rank-badge">${index === 0 ? 'The Best🤞' : `Rank ${index + 1} 💖` }</div>
+                            <h3>Best Monthly</h3>
                             <div class="employee-details">
                                 <div class="stat-group">
                                     <div class="stat-item">
-                                        <span class="stat-label">الاسم:</span>
+                                        <span class="stat-label">Name:</span>
                                         <span class="stat-value">${employee.name}</span>
                                     </div>
                                     <div class="stat-item">
-                                        <span class="stat-label">الفرع:</span>
+                                        <span class="stat-label">Branch:</span>
                                         <span class="stat-value">${employee.branch}</span>
                                     </div>
                                     <div class="stat-item">
-                                        <span class="stat-label">المسمى الوظيفي:</span>
+                                        <span class="stat-label">Job Title:</span>
                                         <span class="stat-value">${employee.title}</span>
                                     </div>
                                 </div>
                             </div>
                             <div class="ratings-section">
-                                <h4>تفاصيل التقييم</h4>
+                                <h4>Evaluation Details</h4>
                                 <div class="rating-items">
                                     <div class="rating-item">
                                         <div class="rating-header">
-                                            <span class="rating-label">نسبة الحضور (50%)</span>
+                                            <span class="rating-label">Attendance Rate (50%)</span>
                                             <span class="rating-value">${attendanceRate}%</span>
                                         </div>
                                         <div class="progress-bar">
@@ -1165,7 +1165,7 @@ function loadBestEmployee(branch) {
                                     </div>
                                     <div class="rating-item">
                                         <div class="rating-header">
-                                            <span class="rating-label">متوسط التقييم (50%)</span>
+                                            <span class="rating-label">Average Evaluation (50%)</span>
                                             <span class="rating-value">${evaluationRate}%</span>
                                         </div>
                                         <div class="progress-bar">
@@ -1175,12 +1175,12 @@ function loadBestEmployee(branch) {
                                     ${employee.hasPenalty ? `
                                         <div class="penalty-warning">
                                             <i class="fas fa-exclamation-triangle"></i>
-                                            خصم الجزاءات: ${penaltyDeduction}%
+                                            Penalty Deduction: ${penaltyDeduction}%
                                         </div>
                                     ` : ''}
                                     <div class="final-score">
                                         <div class="rating-header">
-                                            <span class="rating-label">النتيجة النهائية</span>
+                                            <span class="rating-label">Final Score</span>
                                             <span class="rating-value">${finalScore}%</span>
                                         </div>
                                         <div class="progress-bar">
@@ -1196,12 +1196,12 @@ function loadBestEmployee(branch) {
                 html += '</div>';
                 bestEmployeeData.innerHTML = html;
             } else {
-                bestEmployeeData.innerHTML = '<div class="no-data">لا توجد بيانات متاحة لهذا الشهر</div>';
+                bestEmployeeData.innerHTML = '<div class="no-data">No Data Available for This Month</div>';
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            bestEmployeeData.innerHTML = '<div class="error-message">حدث خطأ أثناء تحميل البيانات</div>';
+            bestEmployeeData.innerHTML = '<div class="error-message">Error Loading Data</div>';
         });
 }
 
@@ -1249,7 +1249,7 @@ document.addEventListener('DOMContentLoaded', function() {
 async function deleteEmployee(code) {
     if (confirm('Are you sure you want to delete this employee?')) {
         try {
-            showMessage('جاري حذف الموظف...', 'success');
+            showMessage('Loading Delete Employee...', 'success');
 
             const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=deleteEmployee&data=${encodeURIComponent(code)}`, {
                 method: 'POST'
@@ -1257,11 +1257,11 @@ async function deleteEmployee(code) {
             
             // إعادة تحميل قائمة الموظفين بعد فترة قصيرة للتأكد من اكتمال العملية
             setTimeout(() => {
-                showMessage('تم حذف الموظف بنجاح', 'success');
+                showMessage('Employee deleted successfully', 'success');
             }, 1000);
 
         } catch (error) {
-            showMessage('حدث خطأ في النظام: ' + error.message, 'error');
+            showMessage('Error: ' + error.message, 'error');
         }
     }
 }
@@ -1296,7 +1296,7 @@ async function generateReport() {
     const resultsContainer = document.getElementById('reportResults');
     
     if (!employeeId || !reportType || !reportMonth) {
-        showMessage('الرجاء اختيار الموظف ونوع التقرير والشهر', 'error');
+        showMessage('Please select an employee, report type, and month', 'error');
         return;
     }
 
@@ -1438,8 +1438,8 @@ function displayAttendanceReport(data) {
 // دالة لحساب إحصائيات الحضور
 function calculateAttendanceStats(data) {
     const presentDays = data.filter(record => record.status === 'Present').length;
-    const absentDays = data.filter(record => record.status === 'Absent' || record.status === 'Leave a vacation').length;
-    const leaveDays = data.filter(record => record.status === 'vacation').length;
+    const absentDays = data.filter(record => record.status === 'Absent' ).length;
+    const leaveDays = data.filter(record => record.status === 'vacation'|| record.status === 'Leave a vacation').length;
     const totalDays = data.length;
     
     return {
@@ -1799,7 +1799,7 @@ async function generateComprehensiveReport() {
     const resultsContainer = document.getElementById('comprehensiveReportResults');
 
     if (!period || !startDate) {
-        showMessage('الرجاء اختيار المدة وتاريخ البدء', 'error');
+        showMessage('Please select a period and start date', 'error');
         return;
     }
 
@@ -1808,7 +1808,7 @@ async function generateComprehensiveReport() {
         <div class="loading-overlay">
             <div class="loading-container">
                 <div class="loading-circle"></div>
-                <div class="loading-text">جاري تحميل التقرير الشامل...</div>
+                <div class="loading-text">Loading Comprehensive Report...</div>
             </div>
         </div>
     `;
@@ -1818,8 +1818,8 @@ async function generateComprehensiveReport() {
         displayComprehensiveReport(reportData, period, startDate);
     } catch (error) {
         console.error('Error generating comprehensive report:', error);
-        showMessage('حدث خطأ أثناء إنشاء التقرير', 'error');
-        resultsContainer.innerHTML = '<div class="error-message">حدث خطأ أثناء تحميل التقرير</div>';
+        showMessage('Error Generating Report', 'error');
+        resultsContainer.innerHTML = '<div class="error-message">Error Loading Report</div>';
     }
 }
 
@@ -1961,10 +1961,10 @@ function getAttendanceStatusClass(attendance) {
     }
 
     const statusClasses = {
-        'Present': { class: 'status-present', text: 'حاضر' },
-        'Absent': { class: 'status-absent', text: 'غائب' },
-        'vacation': { class: 'status-vacation', text: 'إجازة' },
-        'Leave a vacation': { class: 'status-vacation', text: 'إجازة' }
+        'Present': { class: 'status-present', text: 'Present' },
+        'Absent': { class: 'status-absent', text: 'Absent' },
+        'vacation': { class: 'status-vacation', text: 'Vacation' },
+        'Leave a vacation': { class: 'status-vacation', text: 'Leave Vacation' }
     };
 
     return statusClasses[attendance] || { class: '', text: attendance };
