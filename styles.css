@@ -1833,14 +1833,14 @@ select, input {
 
 .best-employee-card {
     position: relative;
-    border: 2px solid #e0e0e0;
+    border: 2px solid #045cff;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .best-employee-card.gold {
     border-color: #ffd700;
-    background: linear-gradient(135deg, rgba(255,215,0,0.1) 0%, rgba(255,215,0,0.05) 100%);
-    box-shadow: 0 4px 20px rgba(255,215,0,0.2);
+    background: linear-gradient(135deg, rgba(255, 217, 0, 0.247) 0%, rgba(255,215,0,0.05) 100%);
+    box-shadow: 0 4px 20px rgb(255, 217, 0);
 }
 
 .crown {
@@ -1848,7 +1848,7 @@ select, input {
     top: -20px;
     left: 50%;
     transform: translateX(-50%);
-    color: #ffd700;
+    color: #ffd000;
     font-size: 2rem;
     filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
 }
