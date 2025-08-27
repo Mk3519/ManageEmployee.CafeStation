@@ -1,5 +1,5 @@
 // Google Apps Script URL
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxEdLGwroX-SFn40JBMpVJBJhuqi23hwFzuThwpbkopEo5az3FmKWU4pjy_p5U3oDeWiQ/exec';
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw8GJK6HJS9-PB66X8aHSH8mwugojCc-QM-mT5PP6s2P7o0sAbebWujOalLlTmZMMbuVQ/exec';
 
 // Show Message Function
 function showMessage(message, type = 'success') {
@@ -326,7 +326,7 @@ function resetSessionTimer() {
     sessionTimeout = setTimeout(() => {
         logout();
         showMessage('Session expired. Please login again.', 'error');
-    }, 15 * 60 * 1000); // 15 minutes
+    }, 15 * 60 * 5000); // 15 minutes
 }
 
 // Check login state when page loads
@@ -337,7 +337,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const loginTime = localStorage.getItem('loginTime');
     if (loginTime) {
         const timeElapsed = Date.now() - parseInt(loginTime);
-        if (timeElapsed > 15 * 60 * 1000) { // 15 minutes
+        if (timeElapsed > 15 * 60 * 3000) { // 15 minutes
             logout();
             showMessage('انتهت الجلسة. الرجاء تسجيل الدخول مرة أخرى', 'error');
         } else {
@@ -970,29 +970,6 @@ async function saveAttendance() {
 }
 
 
-// تهيئة النجوم
-function initializeStarRatings() {
-    document.querySelectorAll('.star-rating').forEach(container => {
-        container.querySelectorAll('.star').forEach(star => {
-            star.addEventListener('click', function() {
-                const value = this.getAttribute('data-value');
-                const parent = this.closest('.star-rating');
-                parent.setAttribute('data-rating', value);
-                
-                // تحديث حالة النجوم
-                parent.querySelectorAll('.star').forEach(s => {
-                    if (s.getAttribute('data-value') <= value) {
-                        s.classList.add('active');
-                        s.textContent = '★';
-                    } else {
-                        s.classList.remove('active');
-                        s.textContent = '☆';
-                    }
-                });
-            });
-        });
-    });
-}
 
 // تقييم الموظفين
 function submitEvaluation() {
@@ -1519,11 +1496,11 @@ function displayEvaluationReport(data) {
                             ${records.map(record => {
                                 const date = new Date(record.date);
                                 const dailyAverage = ((
-                                    Number(record.cleanliness) +
-                                    Number(record.appearance) +
-                                    Number(record.teamwork) +
-                                    Number(record.punctuality)
-                                ) / 4).toFixed(2);
+                                    (Number(record.cleanliness) * 12.5 / 5) +
+                                    (Number(record.appearance) * 12.5 / 5) +
+                                    (Number(record.teamwork) * 12.5 / 5) +
+                                    (Number(record.punctuality) * 12.5 / 5)
+                                )).toFixed(2);
                                 
                                 return `
                                     <tr>
@@ -1552,10 +1529,11 @@ function displayEvaluationReport(data) {
 
 function calculateMonthlyAverages(records) {
     const totals = records.reduce((acc, record) => {
-        acc.cleanliness += Number(record.cleanliness);
-        acc.appearance += Number(record.appearance);
-        acc.teamwork += Number(record.teamwork);
-        acc.punctuality += Number(record.punctuality);
+        // تحويل كل تقييم إلى نسبة من 12.5%
+        acc.cleanliness += (Number(record.cleanliness) * 12.5 / 5);  // النظافة الشخصية (12.5%)
+        acc.appearance += (Number(record.appearance) * 12.5 / 5);    // المظهر (12.5%)
+        acc.teamwork += (Number(record.teamwork) * 12.5 / 5);       // العمل الجماعي (12.5%)
+        acc.punctuality += (Number(record.punctuality) * 12.5 / 5); // الانضباط (12.5%)
         return acc;
     }, {
         cleanliness: 0,
@@ -1566,18 +1544,19 @@ function calculateMonthlyAverages(records) {
 
     const count = records.length;
     const averages = {
-        cleanliness: (totals.cleanliness / count).toFixed(2),
-        appearance: (totals.appearance / count).toFixed(2),
-        teamwork: (totals.teamwork / count).toFixed(2),
-        punctuality: (totals.punctuality / count).toFixed(2)
+        cleanliness: (totals.cleanliness / count).toFixed(2),    // النظافة الشخصية (12.5%)
+        appearance: (totals.appearance / count).toFixed(2),       // المظهر (12.5%)
+        teamwork: (totals.teamwork / count).toFixed(2),          // العمل الجماعي (12.5%)
+        punctuality: (totals.punctuality / count).toFixed(2)      // الانضباط (12.5%)
     };
 
+    // حساب المتوسط الشهري الإجمالي (مجموع النسب = 50%)
     averages.total = ((
         Number(averages.cleanliness) +
         Number(averages.appearance) +
         Number(averages.teamwork) +
         Number(averages.punctuality)
-    ) / 4).toFixed(2);
+    )).toFixed(2);
 
     return averages;
 }
@@ -1673,29 +1652,7 @@ function calculatePenaltyStats(data) {
     };
 }
 
-// تهيئة النجوم
-function initializeStarRatings() {
-    document.querySelectorAll('.star-rating').forEach(container => {
-        container.querySelectorAll('.star').forEach(star => {
-            star.addEventListener('click', function() {
-                const value = this.getAttribute('data-value');
-                const parent = this.closest('.star-rating');
-                parent.setAttribute('data-rating', value);
-                
-                // تحديث حالة النجوم
-                parent.querySelectorAll('.star').forEach(s => {
-                    if (s.getAttribute('data-value') <= value) {
-                        s.classList.add('active');
-                        s.textContent = '★';
-                    } else {
-                        s.classList.remove('active');
-                        s.textContent = '☆';
-                    }
-                });
-            });
-        });
-    });
-}
+
 
 
 
@@ -1866,6 +1823,7 @@ function displayComprehensiveReport(data, period, startDate) {
                                 <th data-label="Appearance">Appearance</th>
                                 <th data-label="Teamwork">Teamwork</th>
                                 <th data-label="Punctuality">Punctuality</th>
+                                <th data-label="Monthly Average">Monthly Average</th>
                                 <th data-label="Penalties">Penalties</th>
                             </tr>
                         </thead>
@@ -1885,6 +1843,7 @@ function displayComprehensiveReport(data, period, startDate) {
                 <td data-label="Appearance" class="evaluation-cell">${employee.evaluations.appearance}</td>
                 <td data-label="Teamwork" class="evaluation-cell">${employee.evaluations.teamwork}</td>
                 <td data-label="Punctuality" class="evaluation-cell">${employee.evaluations.punctuality}</td>
+                <td data-label="Monthly Average" class="evaluation-cell">${calculateMonthlyTotal(employee.evaluations)}</td>
                 <td data-label="Penalties" class="penalty-cell">${employee.penalties.totalDays}</td>
             </tr>
         `;
@@ -1927,7 +1886,7 @@ function formatReportDate(startDate, period) {
         case 'weekly':
             const endDate = new Date(date);
             endDate.setDate(date.getDate() + 6);
-            return `${date.toLocaleDateString('EG', options)} - ${endDate.toLocaleDateString('ar-EG', options)}`;
+            return `${date.toLocaleDateString('EG', options)} - ${endDate.toLocaleDateString('EG', options)}`;
         case 'monthly':
             return date.toLocaleDateString('EG', { year: 'numeric', month: 'long' });
         default:
@@ -1943,6 +1902,21 @@ function getPeriodText(period) {
         'monthly': 'monthly'
     };
     return periods[period] || '';
+}
+
+// دالة حساب المتوسط الشهري (مجموع المعايير الأربعة)
+function calculateMonthlyTotal(evaluations) {
+    if (!evaluations) return '0.00';
+    
+    // تحويل كل معيار إلى نسبة من 12.5%
+    const cleanliness = Number(evaluations.cleanliness) ;
+    const appearance = Number(evaluations.appearance) ;
+    const teamwork = Number(evaluations.teamwork) ;
+    const punctuality = Number(evaluations.punctuality) ;
+    
+    // حساب المجموع (بحد أقصى 50%)
+    const total = (cleanliness + appearance + teamwork + punctuality).toFixed(2);
+    return total;
 }
 
 // دالة حساب متوسط التقييم
