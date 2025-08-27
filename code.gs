@@ -577,7 +577,7 @@ function getBestEmployee(e) {
       
       const attendanceScore = (attendanceRecords.length / 26) * 50;
 
-      // حساب متوسط التقييمات (50%)
+      // حساب متوسط التقييمات (50% مقسمة على المعايير الأربعة)
       const evaluations = evaluationsSheet.getDataRange().getValues()
         .slice(1)
         .filter(row => {
@@ -589,10 +589,23 @@ function getBestEmployee(e) {
 
       let evaluationScore = 0;
       if (evaluations.length > 0) {
-        const avgRating = evaluations.reduce((sum, row) => {
-          return sum + ((row[2] + row[3] + row[4] + row[5]) / 4);
-        }, 0) / evaluations.length;
-        evaluationScore = (avgRating / 5) * 50;
+        // حساب متوسط كل معيار بشكل منفصل (12.5% لكل معيار)
+        const avgRatings = evaluations.reduce((acc, row) => {
+          return {
+            cleanliness: acc.cleanliness + (row[2] * 12.5 / 5), // النظافة الشخصية
+            appearance: acc.appearance + (row[3] * 12.5 / 5),    // المظهر
+            teamwork: acc.teamwork + (row[4] * 12.5 / 5),       // العمل الجماعي
+            punctuality: acc.punctuality + (row[5] * 12.5 / 5)   // الانضباط
+          };
+        }, { cleanliness: 0, appearance: 0, teamwork: 0, punctuality: 0 });
+
+        // حساب المتوسط النهائي لكل معيار
+        evaluationScore = (
+          avgRatings.cleanliness + 
+          avgRatings.appearance + 
+          avgRatings.teamwork + 
+          avgRatings.punctuality
+        ) / evaluations.length;
       }
 
       // حساب خصومات الجزاءات
@@ -895,19 +908,21 @@ function getEvaluationData(sheet, employeeCode, startDate, endDate) {
 
   // حساب متوسط التقييمات
   const totals = records.reduce((acc, row) => {
-    acc.cleanliness += Number(row[2]);
-    acc.appearance += Number(row[3]);
-    acc.teamwork += Number(row[4]);
-    acc.punctuality += Number(row[5]);
+    // تحويل كل تقييم إلى نسبة من 12.5%
+    acc.cleanliness += (Number(row[2]) * 12.5 / 5); // النظافة الشخصية
+    acc.appearance += (Number(row[3]) * 12.5 / 5);   // المظهر
+    acc.teamwork += (Number(row[4]) * 12.5 / 5);     // العمل الجماعي
+    acc.punctuality += (Number(row[5]) * 12.5 / 5);   // الانضباط
     return acc;
   }, { cleanliness: 0, appearance: 0, teamwork: 0, punctuality: 0 });
 
   const count = records.length;
   return {
-    cleanliness: (totals.cleanliness / count).toFixed(2),
-    appearance: (totals.appearance / count).toFixed(2),
-    teamwork: (totals.teamwork / count).toFixed(2),
-    punctuality: (totals.punctuality / count).toFixed(2)
+    cleanliness: (totals.cleanliness / count).toFixed(2),    // النظافة الشخصية (12.5%)
+    appearance: (totals.appearance / count).toFixed(2),       // المظهر (12.5%)
+    teamwork: (totals.teamwork / count).toFixed(2),          // العمل الجماعي (12.5%)
+    punctuality: (totals.punctuality / count).toFixed(2),     // الانضباط (12.5%)
+    monthlyAverage: ((totals.cleanliness + totals.appearance + totals.teamwork + totals.punctuality) / count).toFixed(2) // إجمالي التقييم (50%)
   };
 }
 
